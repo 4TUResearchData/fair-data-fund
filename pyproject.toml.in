@@ -1,0 +1,28 @@
+[build-system]
+requires = [
+    "setuptools>=42",
+    "wheel"
+]
+build-backend   = "setuptools.build_meta"
+
+[project]
+name            = "fair-data-fund"
+version         = "@VERSION@"
+authors         = [{ name="Roel Janssen", email="r.r.e.janssen@tudelft.nl" }]
+description     = "The FAIR Data Fund offers researchers an opportunity to apply for financial aid to cover the costs of making their datasets FAIR.  This package provides the website to apply for funding."
+readme          = "README.md"
+requires-python = ">=3.8"
+classifiers     = [
+    "Programming Language :: Python :: 3",
+    "Environment :: Web Environment",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage"      = "https://github.com/4TUResearchData/fair-data-fund"
+"Source Code"   = "https://github.com/4TUResearchData/fair-data-fund"
+"Bug Tracker"   = "https://github.com/4TUResearchData/fair-data-fund/issues"
+
+[project.scripts]
+fair-data-fund = "fair_data_fund.ui:main"

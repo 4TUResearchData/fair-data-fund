@@ -1,0 +1,126 @@
+{% extends "layout.html" %}
+{% block headers %}
+<link href="/static/css/form.css" rel="stylesheet">
+<script src="/static/js/jquery-3.7.1.min.js"></script>
+<script src="/static/js/quill.min.js"></script>
+<script src="/static/js/utils.js"></script>
+<script src="/static/js/dropzone.min.js"></script>
+<script src="/static/js/application-form.js"></script>
+<link href="/static/css/quill.4tu.css" rel="stylesheet">
+<link href="/static/css/dropzone.min.css" rel="stylesheet">
+{% endblock %}
+{% block steps %}
+{% endblock %}
+{% block body %}
+<h1>FAIR Data Fund Application Form</h1>
+
+<label for="name">Your name</label>
+<input type="text" id="name" name="title" value="{{application.name}}" />
+
+<label for="name">Pronouns</label>
+<input type="text" id="name" name="pronouns" value="{{application.pronouns}}" />
+
+<label for="name">Your institution</label>
+<input type="text" id="institution" name="institution" value="{{application.institution}}" />
+
+<label for="faculty">Your faculty or group</label>
+<input type="text" id="faculty" name="faculty" value="{{application.faculty}}" />
+
+<label for="department">Your department</label>
+<input type="text" id="department" name="department" value="{{application.department}}" />
+
+<label for="position">Your position</label>
+<input type="text" id="position" name="position" value="{{application.position}}" />
+
+<label for="discipline">Your research discipline</label>
+<input type="text" id="discipline" name="discipline" value="{{application.discipline}}" />
+
+<label for="datatype">Type of data</label>
+<input type="text" id="datatype" name="datatype" value="{{application.datatype}}" />
+
+<label>Briefly describe the content of the dataset and file formats</label>
+<div id="description" class="texteditor">
+  {{application.description | default("", True) | replace("\\n", "<br>") | safe }}
+</div>
+
+<label>When was the data originally created?</label>
+<div id="creation-time-wrapper" class="options-wrapper">
+  <input class="subitem-checkbox" type="radio" name="data-timing" value="decades-ago" id="data-timing-decades-ago"><!--
+--><label class="subitem-label no-head" for="data-timing-decades-ago">Decades ago</label><br>
+  <input class="subitem-checkbox" type="radio" name="data-timing" value="years-ago" id="data-timing-years-ago"><!--
+--><label class="subitem-label no-head" for="data-timing-years-ago">A few years ago</label><br>
+  <input class="subitem-checkbox" type="radio" name="data-timing" value="recent" id="data-timing-recent"><!--
+--><label class="subitem-label no-head" for="data-timing-recent">Recently completed research</label><br>
+  <input class="subitem-checkbox" type="radio" name="data-timing" value="recent" id="data-timing-ongoing"><!--
+--><label class="subitem-label no-head" for="data-timing-ongoing">In ongoing research</label><br>
+</div>
+
+<label for="size">Dataset size (in gigabytes)</label>
+<input type="text" id="size" name="size" value="{{application.size}}" />
+
+<label>FAIR data refinement needed</label>
+<div id="refinement-needed-wrapper" class="options-wrapper">
+  <input class="subitem-checkbox" type="radio" name="refinement-metadata-standards" value="apply-metadata-standards" id="refinement-metadata-standards"><!--
+--><label class="subitem-label no-head" for="refinement-metadata-standards">Identification and implementation of metadata standards</label><br>
+  <input class="subitem-checkbox" type="radio" name="refinement-additional-data" value="years-ago" id="refinement-additional-data"><!--
+--><label class="subitem-label no-head" for="refinement-additional-data">Addition of data and metadata documentation</label><br>
+  <input class="subitem-checkbox" type="radio" name="data-timing" value="anonymisation" id="refinement-anonymisation"><!--
+--><label class="subitem-label no-head" for="refinement-anonymisation">Anonymisation</label><br>
+  <input class="subitem-checkbox" type="radio" name="data-timing" value="translation" id="refinement-translation"><!--
+--><label class="subitem-label no-head" for="refinement-translation">Translation</label><br>
+  <input class="subitem-checkbox" type="radio" name="data-timing" value="integration" id="refinement-integration"><!--
+--><label class="subitem-label no-head" for="refinement-integration">Integration with another dataset</label><br>
+  <input class="subitem-checkbox" type="radio" name="data-timing" value="recovery" id="refinement-recovery"><!--
+--><label class="subitem-label no-head" for="refinement-recovery">Recovery</label><br>
+  <input class="subitem-checkbox" type="radio" name="data-timing" value="visualisation" id="refinement-visualisation"><!--
+--><label class="subitem-label no-head" for="refinement-visualisation">Visualisation to make data FAIR</label><br>
+  <input class="subitem-checkbox" type="radio" name="data-timing" value="promotion" id="refinement-promotion"><!--
+--><label class="subitem-label no-head" for="refinement-promotion">Promotion of FAIR dataset (e.g. conference presentation)</label><br>
+</div>
+
+<label>Who will conduct the FAIR data refinement work and how long will the process take?</label>
+<div id="whodoesit" class="texteditor">
+  {{application.whodoesit | default("", True) | replace("\\n", "<br>") | safe }}
+</div>
+
+<label>Summarise what you plan to achieve by refining and publishing the dataset.</label>
+<div id="achievement" class="texteditor">
+  {{application.achievement | default("", True) | replace("\\n", "<br>") | safe }}
+</div>
+
+<label>Explain how refining and publishing the dataset will make it 'Findable' (Maximum 100 words)</label>
+<div id="findable" class="texteditor">
+  {{application.achievement | default("", True) | replace("\\n", "<br>") | safe }}
+</div>
+
+<label>Explain how refining and publishing the dataset will make it 'Accessible' (Maximum 100 words)</label>
+<div id="accessible" class="texteditor">
+  {{application.achievement | default("", True) | replace("\\n", "<br>") | safe }}
+</div>
+
+<label>Explain how refining and publishing the dataset will make it 'Interoperable' (Maximum 100 words)</label>
+<div id="interoperable" class="texteditor">
+  {{application.achievement | default("", True) | replace("\\n", "<br>") | safe }}
+</div>
+
+<label>Budget estimation</label>
+<div id="budget_upload_field" class="upload-wrapper record-type-field">
+<form id="budget-dropzone" class="upload-container dropzone" action="/v1/application-form/{{container_uuid}}/upload-budget" method="post">
+  <div class="fallback">
+    <input type="file" name="file" id="file" aria-label="Upload file" multiple="">
+  </div>
+</form>
+</div>
+
+<label>Please provide a short summary about your application that can be published on the 4TU.ResearchData community platform, website and social media channels</label>
+<div id="summary" class="texteditor">
+  {{application.summary | default("", True) | replace("\\n", "<br>") | safe }}
+</div>
+
+<div style="text-align: center">
+  <ul class="action-buttons">
+    <li class="save-button"><a id="save" href="#">Save draft</a>
+    <li class="submit-button"><a id="submit" href="#">Submit application</a>
+  </ul>
+</div>
+{% endblock %}

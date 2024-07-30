@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="description" content="">
+    <meta name="keywords" content="4tu, 4tu.researchdata, fair, fair data fund">
+    <meta name="author" content="4TU.ResearchData">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; img-src data: 'self' 'unsafe-eval'; object-src data: 'unsafe-eval'">
+    <title>{% if page_title %}{{page_title|safe}}{% else %}{{site_name | default("FAIR Data Fund, 4TU.ResearchData", True)}}{% endif %}</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" type="text/css" href="/static/css/main.css">
+    {% block headers %}{% endblock %}
+  </head>
+  <body>
+    <div id="wrapper">
+      <div id="header">
+        {% block steps %}{% endblock %}
+      </div>
+      <div id="content">
+        <div id="content-wrapper">
+          <div id="message"></div>
+          {% block body %}{% endblock %}
+        </div>
+      </div>
+      <div id="footer">
+        <p></p>
+      </div>
+    </div>
+  </body>
+</html>

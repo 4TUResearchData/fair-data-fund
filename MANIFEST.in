@@ -1,0 +1,2 @@
+recursive-include src *.py
+recursive-include src/fair_data_fund/web/resources *.txt *.html *.css *.eot *.svg *.ttf *.woff *.woff2 *.js *.sparql *.jpg *.png *.ico
