@@ -2,6 +2,13 @@
 @font-face { font-family: 'SourceSans-Italic'; src: url('/static/fonts/SourceSansPro-Italic.ttf') format('truetype'); font-weight: normal; font-style: italic; }
 @font-face { font-family: 'SourceSans-Bold'; src: url('/static/fonts/SourceSansPro-Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; }
 @font-face { font-family: 'FiraMono'; src: url('/static/fonts/FiraMono-Regular.ttf') format('truetype'); font-weight: normal; font-style: normal; }
+@font-face { font-family: 'Font Awesome 6'; font-style: normal; font-weight: 900; font-display: block;
+  src: url("/static/fonts/fa-solid-900.eot");
+  src: url("/static/fonts/fa-solid-900.eot?#iefix") format("embedded-opentype"),
+       url("/static/fonts/fa-solid-900.woff2") format("woff2"),
+       url("/static/fonts/fa-solid-900.woff") format("woff"),
+       url("/static/fonts/fa-solid-900.ttf") format("truetype");
+}
 body,html { width: 100%; height: 100%; padding: 0em; margin: 0em; font-family: 'SourceSans', sans-serif; font-size: 12pt; color: #000; background: #f5f5f5; }
 #wrapper { width: 100%; min-height: 100%; padding: 0em; margin: 0em auto auto auto; border: none; max-width: 880pt; }
 #content { max-width: 880pt; min-height: 5em; margin: 0 auto; padding: 0; color: #000; }
@@ -67,3 +74,37 @@ table { border:none; border-spacing: 0pt; border-collapse: collapse; }
     max-width: 572pt;
 }
 h1 { margin-top: 0px; }
+
+a.far, a.fab, a.fas { text-decoration: none; }
+.fab {
+  display: inline-block;
+  min-width: 1.5em;
+  font-family: "Font Awesome 6 Brands";
+  font-weight: 900;
+}
+.fa, .far, .fas {
+  display: inline-block;
+  min-width: 1.5em;
+  font-family: "Font Awesome 6";
+  font-weight: 900;
+}
+.fa-lg { .fa; font-size: 1.5em; }
+.fa-question-circle::before { content: "\f059"; }
+.help-icon { margin: 0pt 0pt 0pt 5pt; }
+.help-icon .help-text { display: none; }
+.help-icon:hover { cursor: pointer; }
+.help-icon:hover .help-text,
+.help-icon-clicked .help-text {
+  position: absolute;
+  max-width: 700pt;
+  display: block;
+  background: #fffaea;
+  border: solid 2pt #ffeecc;
+  font-family: 'SourceSans', sans-serif;
+  font-size: 12pt;
+  font-weight: normal;
+  padding: .5em;
+  border-radius: .5em;
+  margin-top: -2.5em;
+  margin-left: 1.5em;
+}

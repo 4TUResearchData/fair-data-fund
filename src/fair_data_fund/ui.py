@@ -172,10 +172,8 @@ def read_configuration_file (config, server, config_file, logger, config_files):
         enable_query_audit_log = xml_root.find ("enable-query-audit-log")
         if enable_query_audit_log is not None:
             config["transactions_directory"] = enable_query_audit_log.attrib.get("transactions-directory")
-            try:
-                server.db.enable_query_audit_log = bool(int(enable_query_audit_log.text))
-            except (ValueError, TypeError):
-                logger.info("Invalid value for enable-query-audit-log. Ignoring.. assuming 1 (True)")
+            server.db.enable_query_audit_log = read_boolean_value (xml_root, "enable-query-audit-log",
+                                                                   True, logger)
 
         server.allow_crawlers = read_boolean_value (xml_root, "allow-crawlers",
                                                     server.allow_crawlers, logger)
@@ -185,6 +183,8 @@ def read_configuration_file (config, server, config_file, logger, config_files):
             base_url_fallback = server.base_url
 
         server.base_url = config_value (xml_root, "base-url", None, base_url_fallback)
+
+        server.db.state_graph = config_value (xml_root, "rdf-store/state-graph")
 
         endpoint = config_value (xml_root, "rdf-store/sparql-uri")
         if endpoint:

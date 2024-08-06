@@ -8,7 +8,7 @@ from datetime import datetime
 from urllib.error import URLError, HTTPError
 from urllib.request import urlopen
 from defusedxml import ElementTree
-from rdflib import Dataset, Graph, Literal, RDF, XSD, URIRef
+from rdflib import Dataset, Graph, Literal, RDF, RDFS, XSD, URIRef
 from rdflib.plugins.stores import sparqlstore
 from rdflib.store import CORRUPTED_STORE, NO_STORE
 from jinja2 import Environment, FileSystemLoader
@@ -22,7 +22,7 @@ class SparqlInterface:
 
         self.endpoint     = "http://127.0.0.1:8890/sparql"
         self.update_endpoint = None
-        self.state_graph  = "ssi://default"
+        self.state_graph  = "default://graph"
         self.log          = logging.getLogger(__name__)
         self.cache        = cache.CacheLayer(None)
 
@@ -258,9 +258,48 @@ class SparqlInterface:
 
         return False
 
+    def state_graph_is_initialized (self):
+        """"Returns True of the state-graph is already initialized."""
+        query = ((f'ASK {{ GRAPH <{self.state_graph}> {{ <this> '
+                  f'<{rdf.FDF["initialized"]}> "true"^^<{XSD.boolean}> }} }}'))
+        return self.__run_query (query)
+
     def initialize_database (self, account_email=None):
         """Procedure to initialize the database."""
-        return True
+
+        # Do not re-initialize.
+        if self.state_graph_is_initialized ():
+            self.log.info ("Skipping re-initialization of the state-graph.")
+            return True
+
+        graph = Graph ()
+        delft_uri = rdf.unique_node ("institution")
+        rdf.add (graph, delft_uri, RDF.type, rdf.FDF["Institution"], "uri")
+        rdf.add (graph, delft_uri, RDFS.label, "Delft University of Technology", XSD.string)
+
+        twente_uri = rdf.unique_node ("institution")
+        rdf.add (graph, twente_uri, RDF.type, rdf.FDF["Institution"], "uri")
+        rdf.add (graph, twente_uri, RDFS.label, "University of Twente", XSD.string)
+
+        wageningen_uri = rdf.unique_node ("institution")
+        rdf.add (graph, wageningen_uri, RDF.type, rdf.FDF["Institution"], "uri")
+        rdf.add (graph, wageningen_uri, RDFS.label, "Wageningen University & Research", XSD.string)
+
+        eindhoven_uri = rdf.unique_node ("institution")
+        rdf.add (graph, eindhoven_uri, RDF.type, rdf.FDF["Institution"], "uri")
+        rdf.add (graph, eindhoven_uri, RDFS.label, "Eindhoven University of Technology", XSD.string)
+
+        rdf.add (graph, URIRef("this"), rdf.FDF["initialized"], True, XSD.boolean)
+
+        query = self.__insert_query_for_graph (graph)
+        result = self.__run_query (query)
+        return bool(result)
+
+    def institutions (self):
+        """Returns a list of institutions."""
+        query = self.__query_from_template ("institutions")
+        self.__log_query (query)
+        return self.__run_query (query)
 
     def create_application (self):
         """Creates an application entry and returns a unique UUID."""

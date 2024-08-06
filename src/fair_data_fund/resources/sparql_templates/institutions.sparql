@@ -1,0 +1,11 @@
+{% extends "prefixes.sparql" %}
+{% block query %}
+SELECT DISTINCT ?uuid ?name
+WHERE {
+  GRAPH <{{state_graph}}> {
+    ?institution     rdf:type         fdf:Institution .
+    ?institution     rdfs:label       ?name .
+    BIND (STRAFTER(STR(?institution), "institution:") AS ?uuid)
+  }
+}
+{% endblock %}

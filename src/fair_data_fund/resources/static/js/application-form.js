@@ -1,5 +1,3 @@
-Dropzone.autoDiscover = false;
-
 function perform_upload (files, current_file, dataset_uuid) {
     let total_files = files.length;
     let index = current_file - 1;
@@ -64,8 +62,10 @@ jQuery(document).ready(function (){
     new Quill('#interoperable', { theme: '4tu' });
     new Quill('#reusable', { theme: '4tu' });
     new Quill('#summary', { theme: '4tu' });
+    new Quill('#fair_summary', { theme: '4tu' });
     //new Quill('.texteditor', { theme: '4tu' });
 
+    Dropzone.autoDiscover = false;
     var budgetUploader = new Dropzone("#budget-dropzone", {
         url:               `/v1/application-form/${application_uuid}/upload-budget`,
         paramName:         "file",

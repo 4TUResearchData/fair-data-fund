@@ -358,12 +358,13 @@ class WebUserInterfaceServer:
                     return self.error_500 ()
                 return redirect (f"/application-form/{uuid}", code=302)
 
+            institutions = self.db.institutions ()
             if self.accepts_html (request):
                 data = {
                     "uuid":          uuid,
                     "name":          "",
                     "pronouns":      "",
-                    "institution":   "",
+                    "institution":   None,
                     "faculty":       "",
                     "department":    "",
                     "position":      "",
@@ -373,6 +374,7 @@ class WebUserInterfaceServer:
                     "size":          "",
                     "whodoesit":     "",
                     "achievement":   "",
+                    "fair_summary":  "",
                     "findable":      "",
                     "accessible":    "",
                     "interoperable": "",
@@ -381,9 +383,9 @@ class WebUserInterfaceServer:
                 }
                 return self.__render_template (request,
                                                "application-form.html",
-                                               application = data)
+                                               application = data,
+                                               institutions = institutions)
             return self.error_406 ("text/html")
-        return self.error_405 ("GET")
 
         
         

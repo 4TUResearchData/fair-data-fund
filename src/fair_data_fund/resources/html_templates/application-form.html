@@ -14,6 +14,7 @@
 {% block body %}
 <h1>FAIR Data Fund Application Form</h1>
 
+<h2>Basic information</h2>
 <label for="name">Your name</label>
 <input type="text" id="name" name="title" value="{{application.name}}" />
 
@@ -21,7 +22,12 @@
 <input type="text" id="name" name="pronouns" value="{{application.pronouns}}" />
 
 <label for="name">Your institution</label>
-<input type="text" id="institution" name="institution" value="{{application.institution}}" />
+<select id="institution">
+  <option value="" disabled{% if application.institution is none%} selected{% endif %}>Select institution</option>
+  {%- for institution in institutions %}
+  <option id="institution-{{institution.uuid}}" value="{{institution.uuid}}"{% if institution.uuid == application.institution %} selected{% endif %}>{{institution.name}}</option>
+  {%- endfor %}
+</select>
 
 <label for="faculty">Your faculty or group</label>
 <input type="text" id="faculty" name="faculty" value="{{application.faculty}}" />
@@ -37,6 +43,9 @@
 
 <label for="datatype">Type of data</label>
 <input type="text" id="datatype" name="datatype" value="{{application.datatype}}" />
+
+<label for="size">Dataset size (in gigabytes)</label>
+<input type="text" id="size" name="size" value="{{application.size}}" />
 
 <label>Briefly describe the content of the dataset and file formats</label>
 <div id="description" class="texteditor">
@@ -55,8 +64,12 @@
 --><label class="subitem-label no-head" for="data-timing-ongoing">In ongoing research</label><br>
 </div>
 
-<label for="size">Dataset size (in gigabytes)</label>
-<input type="text" id="size" name="size" value="{{application.size}}" />
+<h2>Questions</h2>
+
+<label>Summarise how you will make your dataset FAIR beyond publishing it in the 4TU.ResearchData repository.</label><div class="fas fa-question-circle help-icon"><span class="help-text">Your answer will be evaluated based on the information you provide on data citation, access permission, metadata, documentation, data types and formats, and licensing. We encourage you to pay attention to all the mentioned elements in your summary.</span></div>
+<div id="fair_summary" class="texteditor">
+  {{application.fair_summary | default("", True) | replace("\\n", "<br>") | safe }}
+</div>
 
 <label>FAIR data refinement needed</label>
 <div id="refinement-needed-wrapper" class="options-wrapper">
@@ -103,13 +116,18 @@
   {{application.achievement | default("", True) | replace("\\n", "<br>") | safe }}
 </div>
 
-<label>Budget estimation</label>
-<div id="budget_upload_field" class="upload-wrapper record-type-field">
-<form id="budget-dropzone" class="upload-container dropzone" action="/v1/application-form/{{container_uuid}}/upload-budget" method="post">
-  <div class="fallback">
-    <input type="file" name="file" id="file" aria-label="Upload file" multiple="">
+<label>Budget estimation</label><div class="fas fa-question-circle help-icon"><span class="help-text">To receive the budget,
+    you need to provide us with the IBAN and identification code (OFI, BIC, or similar) of your department/faculty. We encourage you to gather that
+    information as soon as possible as it might take a while before receiving them.</span></div>
+<div id="budget-upload-wrapper" class="options-wrapper">
+  <p>Please fill in the <a href="#">this budget template spreadsheet</a> and upload it below.</p>
+  <div id="budget_upload_field" class="upload-wrapper record-type-field">
+    <form id="budget-dropzone" class="upload-container dropzone" action="/v1/application-form/{{container_uuid}}/upload-budget" method="post">
+      <div class="fallback">
+        <input type="file" name="file" id="file" aria-label="Upload file" multiple="">
+      </div>
+    </form>
   </div>
-</form>
 </div>
 
 <label>Please provide a short summary about your application that can be published on the 4TU.ResearchData community platform, website and social media channels</label>
