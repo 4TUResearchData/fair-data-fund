@@ -7,7 +7,6 @@ import signal
 import sys
 import logging
 import os
-import json
 import importlib.metadata
 
 from defusedxml import ElementTree
@@ -115,7 +114,7 @@ def configure_file_logging (log_file, inside_reload, logger):
 def read_automatic_login_configuration (server, xml_root):
     """Procedure to parse and set automatic login for development setups."""
     automatic_login_email = config_value (xml_root, "authentication/automatic-login-email")
-    if (automatic_login_email is not None):
+    if automatic_login_email is not None:
         server.identity_provider = "automatic-login"
         server.automatic_login_email = automatic_login_email
 
@@ -184,6 +183,7 @@ def read_configuration_file (config, server, config_file, logger, config_files):
 
         server.base_url = config_value (xml_root, "base-url", None, base_url_fallback)
 
+        server.db.storage     = config_value (xml_root, "storage-root", None, server.db.storage)
         server.db.state_graph = config_value (xml_root, "rdf-store/state-graph")
 
         endpoint = config_value (xml_root, "rdf-store/sparql-uri")
@@ -282,7 +282,7 @@ def main_inner ():
 
         if arguments.initialize:
             logger.info ("Initialization complete.")
-            server.db.initialize_database (server.automatic_login_email)
+            server.db.initialize_database ()
             server.db.sparql.close()
             return None
 

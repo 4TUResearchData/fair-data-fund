@@ -2,12 +2,8 @@
 
 import os
 import logging
-import uuid
-import secrets
 from datetime import datetime
 from urllib.error import URLError, HTTPError
-from urllib.request import urlopen
-from defusedxml import ElementTree
 from rdflib import Dataset, Graph, Literal, RDF, RDFS, XSD, URIRef
 from rdflib.plugins.stores import sparqlstore
 from rdflib.store import CORRUPTED_STORE, NO_STORE
@@ -31,9 +27,10 @@ class SparqlInterface:
                                              "sparql_templates")
         self.jinja        = Environment(loader = FileSystemLoader(sparql_templates_path),
                                         autoescape = True)
+        self.storage      = None
         self.sparql       = None
         self.sparql_is_up = False
-        self.enable_query_audit_log = False
+        self.enable_query_audit_log = True
         self.store        = None
 
     # SPARQL INTERACTION BITS
@@ -264,7 +261,7 @@ class SparqlInterface:
                   f'<{rdf.FDF["initialized"]}> "true"^^<{XSD.boolean}> }} }}'))
         return self.__run_query (query)
 
-    def initialize_database (self, account_email=None):
+    def initialize_database (self):
         """Procedure to initialize the database."""
 
         # Do not re-initialize.
@@ -301,6 +298,14 @@ class SparqlInterface:
         self.__log_query (query)
         return self.__run_query (query)
 
+    def applications (self, application_uuid=None):
+        """Returns a list of application records."""
+        query = self.__query_from_template ("applications", {
+            "uuid": application_uuid
+        })
+        self.__log_query (query)
+        return self.__run_query (query)
+
     def create_application (self):
         """Creates an application entry and returns a unique UUID."""
 
@@ -317,3 +322,39 @@ class SparqlInterface:
             return None
 
         return rdf.uri_to_uuid (uri)
+
+    def update_application (self, application_uuid, name=None, pronouns=None,
+                            institution=None, faculty=None, department=None,
+                            position=None, discipline=None, datatype=None,
+                            description=None, size=None, whodoesit=None,
+                            achievement=None, fair_summary=None, findable=None,
+                            accessible=None, interoperable=None, reusable=None,
+                            summary=None):
+        """
+        Returns True when the application identified by UUID has been updated,
+        False otherwise.
+        """
+        current_epoch = int(datetime.now().timestamp())
+        query = self.__query_from_template ("update_application", {
+            "uuid"          : application_uuid,
+            "name"          : rdf.escape_string_value (name),
+            "pronouns"      : rdf.escape_string_value (pronouns),
+            "institution"   : rdf.escape_string_value (institution),
+            "faculty"       : rdf.escape_string_value (faculty),
+            "department"    : rdf.escape_string_value (department),
+            "position"      : rdf.escape_string_value (position),
+            "discipline"    : rdf.escape_string_value (discipline),
+            "datatype"      : rdf.escape_string_value (datatype),
+            "description"   : rdf.escape_string_value (description),
+            "size"          : rdf.escape_string_value (size),
+            "whodoesit"     : rdf.escape_string_value (whodoesit),
+            "achievement"   : rdf.escape_string_value (achievement),
+            "fair_summary"  : rdf.escape_string_value (fair_summary),
+            "findable"      : rdf.escape_string_value (findable),
+            "accessible"    : rdf.escape_string_value (accessible),
+            "interoperable" : rdf.escape_string_value (interoperable),
+            "reusable"      : rdf.escape_string_value (reusable),
+            "summary"       : rdf.escape_string_value (summary),
+            "modified_date" : current_epoch
+        })
+        return self.__run_query (query)

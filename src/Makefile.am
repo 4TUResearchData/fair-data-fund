@@ -19,8 +19,10 @@ EXTRA_RESOURCES =                                                       \
     fair_data_fund/resources/html_templates/home.html                   \
     fair_data_fund/resources/html_templates/layout.html                 \
     fair_data_fund/resources/robots.txt                                 \
+    fair_data_fund/resources/sparql_templates/applications.sparql       \
     fair_data_fund/resources/sparql_templates/institutions.sparql       \
     fair_data_fund/resources/sparql_templates/prefixes.sparql           \
+    fair_data_fund/resources/sparql_templates/update_application.sparql \
     fair_data_fund/resources/static/fonts/fa-solid-900.eot              \
     fair_data_fund/resources/static/fonts/fa-solid-900.ttf              \
     fair_data_fund/resources/static/fonts/fa-solid-900.woff             \

@@ -3,7 +3,6 @@
 import json
 import os
 import logging
-import requests
 from werkzeug.utils import redirect
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
@@ -13,17 +12,7 @@ from jinja2 import Environment, FileSystemLoader
 from jinja2.exceptions import TemplateNotFound
 from fair_data_fund import database
 from fair_data_fund import validator
-from fair_data_fund import formatter
-from fair_data_fund.convenience import value_or_none
-
-# Error handling for loading python3-saml is done in 'ui'.
-# So if it fails here, we can safely assume we don't need it.
-try:
-    from onelogin.saml2.auth import OneLogin_Saml2_Auth
-    from onelogin.saml2.errors import OneLogin_Saml2_Error
-except (ImportError, ModuleNotFoundError):
-    pass
-
+from fair_data_fund.convenience import value_or_none, value_or
 
 def R (uri_path, endpoint):  # pylint: disable=invalid-name
     """
@@ -39,10 +28,11 @@ class WebUserInterfaceServer:
     def __init__ (self, address="127.0.0.1", port=8080):
 
         self.url_map          = Map([
-            R("/",                                self.ui_home),
-            R("/application-form",                self.ui_application_form),
-            R("/application-form/<uuid>",         self.ui_application_form),
-            R("/robots.txt",                      self.robots_txt),
+            R("/",                                      self.ui_home),
+            R("/application-form",                      self.ui_application_form),
+            R("/application-form/<uuid>",               self.ui_application_form),
+            R("/application-form/<uuid>/upload-budget", self.ui_upload_budget),
+            R("/robots.txt",                            self.robots_txt),
         ])
         self.allow_crawlers   = False
         self.maintenance_mode = False
@@ -103,7 +93,6 @@ class WebUserInterfaceServer:
     def __render_template (self, request, template_name, **context):
         try:
             template   = self.jinja.get_template (template_name)
-            token      = self.token_from_cookie (request)
             parameters = {
                 "base_url":     self.base_url,
                 "path":         request.path
@@ -223,6 +212,13 @@ class WebUserInterfaceServer:
         response.status_code = 406
         return response
 
+    def error_415 (self, allowed_types):
+        """Procedure to respond with HTTP 415."""
+        response = self.response (f"Supported Content-Types: {allowed_types}",
+                                  mimetype="text/plain")
+        response.status_code = 415
+        return response
+
     def error_500 (self):
         """Procedure to respond with HTTP 500."""
         response = self.response ("")
@@ -297,6 +293,10 @@ class WebUserInterfaceServer:
 
         return self.response (json.dumps(output))
 
+    def respond_201 (self):
+        """Procedure to respond with HTTP 201."""
+        return Response("", 201, {})
+
     def respond_204 (self):
         """Procedure to respond with HTTP 204."""
         return Response("", 204, {})
@@ -348,6 +348,132 @@ class WebUserInterfaceServer:
 
         return self.response (json.dumps({ "status": "maintenance" }))
 
+    def ui_upload_budget (self, request, uuid):
+        """Implements /application/<uuid>/upload-budget."""
+
+        handler = self.default_error_handling (request, "POST", "application/json")
+        if handler is not None:
+            return handler
+
+        if not validator.is_valid_uuid (uuid):
+            return self.error_403 (request)
+
+        application = self.db.applications (application_uuid = uuid)
+        if application is None:
+            return self.error_403 (request)
+
+        content_type = value_or (request.headers, "Content-Type", "")
+        if not content_type.startswith ("multipart/form-data"):
+            return self.error_415 (["multipart/form-data"])
+
+        boundary = None
+        try:
+            boundary = content_type.split ("boundary=")[1]
+            boundary = boundary.split(";")[0]
+        except IndexError:
+            self.log.error ("File upload failed due to missing boundary.")
+            return self.error_400 (
+                request,
+                "Missing boundary for multipart/form-data.",
+                "MissingBoundary")
+
+        bytes_to_read = request.content_length
+        if bytes_to_read is None:
+            self.log.error ("File upload failed due to missing Content-Length.")
+            return self.error_400 (
+                request,
+                "Missing Content-Length header.",
+                "MissingContentLength")
+
+        input_stream = request.stream
+
+        # Read the boundary, plus '--', plus CR/LF.
+        read_ahead_bytes = len(boundary) + 4
+        boundary_scan  = input_stream.read (read_ahead_bytes)
+        expected_begin = f"--{boundary}\r\n".encode("utf-8")
+        expected_end   = f"\r\n--{boundary}--\r\n".encode("utf-8")
+        if not boundary_scan == expected_begin:
+            self.log.error ("File upload failed due to unexpected read while parsing.")
+            self.log.error ("Scanned:  '%s'", boundary_scan)
+            self.log.error ("Expected: '%s'", expected_begin)
+            return self.error_400 (request,
+                                   "Expected stream to start with boundary.",
+                                   "MalformedRequest")
+
+        # Read the multi-part headers
+        line = None
+        header_line_count = 0
+        part_headers = ""
+        while line != b"\r\n" and header_line_count < 10:
+            line = input_stream.readline (4096)
+            part_headers += line.decode("utf-8")
+            header_line_count += 1
+
+        if "Content-Disposition: form-data" not in part_headers:
+            self.log.error ("File upload failed due to missing Content-Disposition.")
+            return self.error_400 (request,
+                                   "Expected Content-Disposition: form-data",
+                                   "MalformedRequest")
+
+        filename = None
+        try:
+            # Extract filename.
+            filename = part_headers.split("filename=")[1].split(";")[0].split("\r\n")[0]
+            # Remove quotes from the filename.
+            if filename[0] == "\"" and filename[-1] == "\"":
+                filename = filename[1:-1]
+        except IndexError:
+            pass
+
+        headers_len        = len(part_headers.encode('utf-8'))
+        computed_file_size = request.content_length - read_ahead_bytes - headers_len - len(expected_end)
+        bytes_to_read      = bytes_to_read - read_ahead_bytes - headers_len
+        content_to_read    = bytes_to_read - len(expected_end)
+
+        output_filename = f"{self.db.storage}/{uuid}_Budget_Template"
+        file_size = 0
+        destination_fd = os.open (output_filename, os.O_WRONLY | os.O_CREAT, 0o600)
+        is_incomplete = None
+        try:
+            with open (destination_fd, "wb") as output_stream:
+                file_size = 0
+                while content_to_read > 4096:
+                    chunk = input_stream.read (4096)
+                    content_to_read -= 4096
+                    file_size += output_stream.write (chunk)
+
+                if content_to_read > 0:
+                    chunk = input_stream.read (content_to_read)
+                    file_size += output_stream.write (chunk)
+                    content_to_read = 0
+
+                # Make the file read-only from here on.
+                if os.name != 'nt':
+                    os.fchmod (destination_fd, 0o400)
+        except BadRequest:
+            is_incomplete = 1
+            self.log.error ("Unexpected end of transfer for %s.", output_filename)
+
+        if computed_file_size != file_size:
+            is_incomplete = 1
+            self.log.error ("File sizes mismatch: Expected %d, but received %d.",
+                            computed_file_size, file_size)
+
+        bytes_to_read -= file_size
+        if bytes_to_read != len(expected_end):
+            is_incomplete = 1
+            self.log.error ("Expected different length after file contents: '%d' != '%d'.",
+                            bytes_to_read, len(expected_end))
+
+        if is_incomplete != 1:
+            ending = input_stream.read (bytes_to_read)
+            if ending != expected_end:
+                is_incomplete = 1
+                self.log.error ("Expected different end after file contents: '%s' != '%s'.",
+                                ending, expected_end)
+
+        return self.respond_201 ()
+
     def ui_application_form (self, request, uuid=None):
         """Implements /application-form."""
 
@@ -358,34 +484,57 @@ class WebUserInterfaceServer:
                     return self.error_500 ()
                 return redirect (f"/application-form/{uuid}", code=302)
 
-            institutions = self.db.institutions ()
-            if self.accepts_html (request):
-                data = {
-                    "uuid":          uuid,
-                    "name":          "",
-                    "pronouns":      "",
-                    "institution":   None,
-                    "faculty":       "",
-                    "department":    "",
-                    "position":      "",
-                    "discipline":    "",
-                    "datatype":      "",
-                    "description":   "",
-                    "size":          "",
-                    "whodoesit":     "",
-                    "achievement":   "",
-                    "fair_summary":  "",
-                    "findable":      "",
-                    "accessible":    "",
-                    "interoperable": "",
-                    "reusable":      "",
-                    "summary":       ""
-                }
+            if not self.accepts_html (request):
+                return self.error_406 ("text/html")
+
+            try:
+                application  = self.db.applications (application_uuid = uuid)[0]
+                self.log.info ("Application: %s", application)
+                institutions = self.db.institutions ()
                 return self.__render_template (request,
                                                "application-form.html",
-                                               application = data,
+                                               application  = application,
                                                institutions = institutions)
-            return self.error_406 ("text/html")
+            except (TypeError, IndexError):
+                self.log.info ("Access denied 1.")
+                return self.error_403 (request)
 
-        
-        
+        if request.method == "PUT":
+            if uuid is None:
+                uuid = self.db.create_application ()
+                if uuid is None:
+                    return self.error_500 ()
+
+            record     = request.get_json ()
+            errors     = []
+            parameters = {
+                    "application_uuid": uuid,
+                    "name":          validator.string_value (record, "name", 1, 255, error_list=errors),
+                    "pronouns":      validator.string_value (record, "pronouns", 0, 255, error_list=errors),
+                    "institution":   validator.uuid_value   (record, "institution", error_list=errors),
+                    "faculty":       validator.string_value (record, "faculty", 0, 255, error_list=errors),
+                    "department":    validator.string_value (record, "department", 0, 255, error_list=errors),
+                    "position":      validator.string_value (record, "position", 0, 255, error_list=errors),
+                    "discipline":    validator.string_value (record, "discipline", 0, 255, error_list=errors),
+                    "datatype":      validator.string_value (record, "datatype", 0, 255, error_list=errors),
+                    "description":   validator.string_value (record, "description", 3, 16384, error_list=errors),
+                    "size":          validator.string_value (record, "size", 0, 255, error_list=errors),
+                    "whodoesit":     validator.string_value (record, "whodoesit", 0, 8192, error_list=errors),
+                    "achievement":   validator.string_value (record, "achievement", 0, 8192, error_list=errors),
+                    "fair_summary":  validator.string_value (record, "fair_summary", 0, 16384, error_list=errors),
+                    "findable":      validator.string_value (record, "findable", 0, 16384, error_list=errors),
+                    "accessible":    validator.string_value (record, "accessible", 0, 16384, error_list=errors),
+                    "interoperable": validator.string_value (record, "interoperable", 0, 16384, error_list=errors),
+                    "reusable":      validator.string_value (record, "reusable", 0, 16384, error_list=errors),
+                    "summary":       validator.string_value (record, "summary", 0, 16384, error_list=errors),
+                }
+
+            if errors:
+                return self.error_400_list (request, errors)
+
+            if self.db.update_application (**parameters):
+                return self.respond_204 ()
+
+            return self.error_500 ()
+
+        return self.error_405 (["GET", "PUT"])

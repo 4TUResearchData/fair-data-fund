@@ -1,0 +1,94 @@
+{% extends "prefixes.sparql" %}
+{% block query %}
+DELETE {
+  GRAPH <{{state_graph}}> {
+    ?application   fdf:name            ?name .
+    ?application   fdf:pronouns        ?pronouns .
+    ?application   fdf:institution     ?institution .
+    ?application   fdf:faculty         ?faculty .
+    ?application   fdf:department      ?department .
+    ?application   fdf:position        ?position .
+    ?application   fdf:discipline      ?discipline .
+    ?application   fdf:datatype        ?datatype .
+    ?application   fdf:description     ?description .
+    ?application   fdf:size            ?size .
+    ?application   fdf:whodoesit       ?whodoesit .
+    ?application   fdf:achievement     ?achievement .
+    ?application   fdf:fair_summary    ?fair_summary .
+    ?application   fdf:findable        ?findable .
+    ?application   fdf:accessible      ?accessible .
+    ?application   fdf:interoperable   ?interoperable .
+    ?application   fdf:reusable        ?reusable .
+    ?application   fdf:summary         ?summary .
+    
+    ?application   fdf:modified_date   ?modified_date .
+  }
+}
+INSERT {
+  GRAPH <{{state_graph}}> {
+
+    {%- if name is not none: %}
+    ?application   fdf:name            {{name | safe }} .
+    {%- endif %}{% if pronouns is not none: %}
+    ?application   fdf:pronouns        {{pronouns | safe }} .
+    {%- endif %}{% if institution is not none: %}
+    ?application   fdf:institution     {{institution | safe }} .
+    {%- endif %}{% if faculty is not none: %}
+    ?application   fdf:faculty         {{faculty | safe }} .
+    {%- endif %}{% if department is not none: %}
+    ?application   fdf:department      {{department | safe }} .
+    {%- endif %}{% if position is not none: %}
+    ?application   fdf:position        {{position | safe }} .
+    {%- endif %}{% if discipline is not none: %}
+    ?application   fdf:discipline      {{discipline | safe }} .
+    {%- endif %}{% if datatype is not none: %}
+    ?application   fdf:datatype        {{datatype | safe }} .
+    {%- endif %}{% if description is not none: %}
+    ?application   fdf:description     {{description | safe }} .
+    {%- endif %}{% if size is not none: %}
+    ?application   fdf:size            {{size | safe }} .
+    {%- endif %}{% if whodoesit is not none: %}
+    ?application   fdf:whodoesit       {{whodoesit | safe }} .
+    {%- endif %}{% if achievement is not none: %}
+    ?application   fdf:achievement     {{achievement | safe }} .
+    {%- endif %}{% if fair_summary is not none: %}
+    ?application   fdf:fair_summary    {{fair_summary | safe }} .
+    {%- endif %}{% if findable is not none: %}
+    ?application   fdf:findable        {{findable | safe }} .
+    {%- endif %}{% if accessible is not none: %}
+    ?application   fdf:accessible      {{accessible | safe }} .
+    {%- endif %}{% if interoperable is not none: %}
+    ?application   fdf:interoperable   {{interoperable | safe }} .
+    {%- endif %}{% if reusable is not none: %}
+    ?application   fdf:reusable        {{reusable | safe }} .
+    {%- endif %}{% if summary is not none: %}
+    ?application   fdf:summary         {{summary | safe }} .
+    {%- endif %}
+    ?application   fdf:modified_date   "{{modified_date}}"^^xsd:integer .
+  }
+}
+WHERE {
+  GRAPH <{{state_graph}}> {
+    OPTIONAL { ?application   fdf:name            ?name . }
+    OPTIONAL { ?application   fdf:pronouns        ?pronouns . }
+    OPTIONAL { ?application   fdf:institution     ?institution . }
+    OPTIONAL { ?application   fdf:faculty         ?faculty . }
+    OPTIONAL { ?application   fdf:department      ?department . }
+    OPTIONAL { ?application   fdf:position        ?position . }
+    OPTIONAL { ?application   fdf:discipline      ?discipline . }
+    OPTIONAL { ?application   fdf:datatype        ?datatype . }
+    OPTIONAL { ?application   fdf:description     ?description . }
+    OPTIONAL { ?application   fdf:size            ?size . }
+    OPTIONAL { ?application   fdf:whodoesit       ?whodoesit . }
+    OPTIONAL { ?application   fdf:achievement     ?achievement . }
+    OPTIONAL { ?application   fdf:fair_summary    ?fair_summary . }
+    OPTIONAL { ?application   fdf:findable        ?findable . }
+    OPTIONAL { ?application   fdf:accessible      ?accessible . }
+    OPTIONAL { ?application   fdf:interoperable   ?interoperable . }
+    OPTIONAL { ?application   fdf:reusable        ?reusable . }
+    OPTIONAL { ?application   fdf:summary         ?summary . }
+    OPTIONAL { ?application   fdf:modified_date   ?modified_date . }
+    FILTER (?application = <application:{{uuid}}>)
+  }
+}
+{% endblock %}

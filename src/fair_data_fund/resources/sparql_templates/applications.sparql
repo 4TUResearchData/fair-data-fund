@@ -1,0 +1,36 @@
+{% extends "prefixes.sparql" %}
+{% block query %}
+SELECT DISTINCT ?uuid ?name ?pronouns ?institution ?faculty ?department
+                ?position ?discipline ?datatype ?description ?size ?whodoesit
+                ?achievement ?fair_summary ?findable ?accessible ?interoperable
+                ?reusable ?summary ?modified_date
+WHERE {
+  GRAPH <{{state_graph}}> {
+    OPTIONAL { ?application   fdf:name            ?name . }
+    OPTIONAL { ?application   fdf:pronouns        ?pronouns . }
+    OPTIONAL { ?application   fdf:institution     ?institution . }
+    OPTIONAL { ?application   fdf:faculty         ?faculty . }
+    OPTIONAL { ?application   fdf:department      ?department . }
+    OPTIONAL { ?application   fdf:position        ?position . }
+    OPTIONAL { ?application   fdf:discipline      ?discipline . }
+    OPTIONAL { ?application   fdf:datatype        ?datatype . }
+    OPTIONAL { ?application   fdf:description     ?description . }
+    OPTIONAL { ?application   fdf:size            ?size . }
+    OPTIONAL { ?application   fdf:whodoesit       ?whodoesit . }
+    OPTIONAL { ?application   fdf:achievement     ?achievement . }
+    OPTIONAL { ?application   fdf:fair_summary    ?fair_summary . }
+    OPTIONAL { ?application   fdf:findable        ?findable . }
+    OPTIONAL { ?application   fdf:accessible      ?accessible . }
+    OPTIONAL { ?application   fdf:interoperable   ?interoperable . }
+    OPTIONAL { ?application   fdf:reusable        ?reusable . }
+    OPTIONAL { ?application   fdf:summary         ?summary . }
+    OPTIONAL { ?application   fdf:modified_date   ?modified_date . }
+
+    BIND(STRAFTER(STR(?application), "application:") AS ?uuid)
+    {%- if uuid is not none %}
+    FILTER (?application = <application:{{uuid}}>)
+    {%- endif %}
+  }
+}
+{% endblock %}
+

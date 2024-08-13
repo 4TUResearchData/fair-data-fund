@@ -6,6 +6,10 @@
 <script src="/static/js/utils.js"></script>
 <script src="/static/js/dropzone.min.js"></script>
 <script src="/static/js/application-form.js"></script>
+<script>
+Dropzone.autoDiscover = false;
+var application_uuid = "{{application.uuid}}";
+</script>
 <link href="/static/css/quill.4tu.css" rel="stylesheet">
 <link href="/static/css/dropzone.min.css" rel="stylesheet">
 {% endblock %}
@@ -103,17 +107,22 @@
 
 <label>Explain how refining and publishing the dataset will make it 'Findable' (Maximum 100 words)</label>
 <div id="findable" class="texteditor">
-  {{application.achievement | default("", True) | replace("\\n", "<br>") | safe }}
+  {{application.findable | default("", True) | replace("\\n", "<br>") | safe }}
 </div>
 
 <label>Explain how refining and publishing the dataset will make it 'Accessible' (Maximum 100 words)</label>
 <div id="accessible" class="texteditor">
-  {{application.achievement | default("", True) | replace("\\n", "<br>") | safe }}
+  {{application.accessible | default("", True) | replace("\\n", "<br>") | safe }}
 </div>
 
 <label>Explain how refining and publishing the dataset will make it 'Interoperable' (Maximum 100 words)</label>
 <div id="interoperable" class="texteditor">
-  {{application.achievement | default("", True) | replace("\\n", "<br>") | safe }}
+  {{application.interoperable | default("", True) | replace("\\n", "<br>") | safe }}
+</div>
+
+<label>Explain how refining and publishing the dataset will make it 'Reusable' (Maximum 100 words)</label>
+<div id="reusable" class="texteditor">
+  {{application.reusable | default("", True) | replace("\\n", "<br>") | safe }}
 </div>
 
 <label>Budget estimation</label><div class="fas fa-question-circle help-icon"><span class="help-text">To receive the budget,
@@ -122,7 +131,7 @@
 <div id="budget-upload-wrapper" class="options-wrapper">
   <p>Please fill in the <a href="#">this budget template spreadsheet</a> and upload it below.</p>
   <div id="budget_upload_field" class="upload-wrapper record-type-field">
-    <form id="budget-dropzone" class="upload-container dropzone" action="/v1/application-form/{{container_uuid}}/upload-budget" method="post">
+    <form id="budget-dropzone" class="upload-container dropzone" action="/application-form/{{application.uuid}}/upload-budget" method="post">
       <div class="fallback">
         <input type="file" name="file" id="file" aria-label="Upload file" multiple="">
       </div>

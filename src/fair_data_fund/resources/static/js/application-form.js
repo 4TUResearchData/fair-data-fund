@@ -53,6 +53,56 @@ function perform_upload (files, current_file, dataset_uuid) {
     });
 }
 
+function gather_form_data (application_uuid) {
+    let form_data = {
+        "uuid":          application_uuid,
+        "name":          or_null(jQuery("#name").val()),
+        "pronouns":      or_null(jQuery("#pronouns").val()),
+        "institution":   or_null(jQuery("#institution").val()),
+        "faculty":       or_null(jQuery("#faculty").val()),
+        "department":    or_null(jQuery("#department").val()),
+        "position":      or_null(jQuery("#position").val()),
+        "discipline":    or_null(jQuery("#discipline").val()),
+        "datatype":      or_null(jQuery("#datatype").val()),
+        "description":   or_null(jQuery("#description").val()),
+        "size":          or_null(jQuery("#size").val()),
+        "whodoesit":     or_null(jQuery("#whodoesit").val()),
+        "achievement":   or_null(jQuery("#achievement").val()),
+        "fair_summary":  or_null(jQuery("#fair_summary").val()),
+        "findable":      or_null(jQuery("#findable").val()),
+        "accessible":    or_null(jQuery("#accessible").val()),
+        "interoperable": or_null(jQuery("#interoperable").val()),
+        "reusable":      or_null(jQuery("#reusable").val()),
+        "summary":       or_null(jQuery("#summary").val())
+    }
+
+    return form_data;
+}
+
+function save_draft (application_uuid, event, notify=true, on_success=jQuery.noop) {
+    if (event !== null) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    form_data = gather_form_data (application_uuid);
+    jQuery.ajax({
+        url:         `/application-form/${application_uuid}`,
+        type:        "PUT",
+        contentType: "application/json",
+        accept:      "application/json",
+        data:        JSON.stringify(form_data),
+    }).done(function () {
+        if (notify) {
+            show_message ("success", "<p>Saved changes.</p>");
+        }
+        on_success ();
+    }).fail(function () {
+        if (notify) {
+            show_message ("failure", "<p>Failed to save draft. Please try again at a later time.</p>");
+        }
+    });    
+}
+
 jQuery(document).ready(function (){
     new Quill('#description', { theme: '4tu' });
     new Quill('#whodoesit', { theme: '4tu' });
@@ -65,9 +115,8 @@ jQuery(document).ready(function (){
     new Quill('#fair_summary', { theme: '4tu' });
     //new Quill('.texteditor', { theme: '4tu' });
 
-    Dropzone.autoDiscover = false;
     var budgetUploader = new Dropzone("#budget-dropzone", {
-        url:               `/v1/application-form/${application_uuid}/upload-budget`,
+        url:               `/application-form/${application_uuid}/upload-budget`,
         paramName:         "file",
         maxFilesize:       1000000,
         maxFiles:          1000000,
@@ -113,4 +162,5 @@ jQuery(document).ready(function (){
         }
     });
 
+    jQuery("#save").on("click", function (event)   { save_draft (application_uuid, event); });
 });
