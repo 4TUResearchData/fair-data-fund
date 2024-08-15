@@ -3,9 +3,11 @@
 SELECT DISTINCT ?uuid ?name ?pronouns ?institution ?faculty ?department
                 ?position ?discipline ?datatype ?description ?size ?whodoesit
                 ?achievement ?fair_summary ?findable ?accessible ?interoperable
-                ?reusable ?summary ?modified_date
+                ?reusable ?summary ?data_timing ?refinement ?submit_date
+                ?modified_date
 WHERE {
   GRAPH <{{state_graph}}> {
+    ?application rdf:type fdf:Application .
     OPTIONAL { ?application   fdf:name            ?name . }
     OPTIONAL { ?application   fdf:pronouns        ?pronouns . }
     OPTIONAL { ?application   fdf:institution     ?institution . }
@@ -24,13 +26,18 @@ WHERE {
     OPTIONAL { ?application   fdf:interoperable   ?interoperable . }
     OPTIONAL { ?application   fdf:reusable        ?reusable . }
     OPTIONAL { ?application   fdf:summary         ?summary . }
+    OPTIONAL { ?application   fdf:data_timing     ?data_timing . }
+    OPTIONAL { ?application   fdf:refinement      ?refinement . }
     OPTIONAL { ?application   fdf:modified_date   ?modified_date . }
+    OPTIONAL { ?application   fdf:submit_date     ?submit_date . }
 
     BIND(STRAFTER(STR(?application), "application:") AS ?uuid)
     {%- if uuid is not none %}
     FILTER (?application = <application:{{uuid}}>)
     {%- endif %}
+    {%- if is_submitted %}
+    FILTER (BOUND(?submit_date))
+    {%- endif %}
   }
 }
 {% endblock %}
-

@@ -298,10 +298,11 @@ class SparqlInterface:
         self.__log_query (query)
         return self.__run_query (query)
 
-    def applications (self, application_uuid=None):
+    def applications (self, application_uuid=None, is_submitted=False):
         """Returns a list of application records."""
         query = self.__query_from_template ("applications", {
-            "uuid": application_uuid
+            "uuid": application_uuid,
+            "is_submitted": is_submitted
         })
         self.__log_query (query)
         return self.__run_query (query)
@@ -314,7 +315,6 @@ class SparqlInterface:
 
         graph.add ((uri, RDF.type, rdf.FDF["Application"]))
         current_epoch = int(datetime.now().timestamp())
-        rdf.add (graph, uri, rdf.FDF["is_editable"],      True)
         rdf.add (graph, uri, rdf.FDF["created_date"],     current_epoch, XSD.integer)
         rdf.add (graph, uri, rdf.FDF["modified_date"],    current_epoch, XSD.integer)
 
@@ -329,7 +329,8 @@ class SparqlInterface:
                             description=None, size=None, whodoesit=None,
                             achievement=None, fair_summary=None, findable=None,
                             accessible=None, interoperable=None, reusable=None,
-                            summary=None):
+                            summary=None, data_timing=None, refinement=None,
+                            submitted=False):
         """
         Returns True when the application identified by UUID has been updated,
         False otherwise.
@@ -355,6 +356,9 @@ class SparqlInterface:
             "interoperable" : rdf.escape_string_value (interoperable),
             "reusable"      : rdf.escape_string_value (reusable),
             "summary"       : rdf.escape_string_value (summary),
+            "data_timing"   : rdf.escape_string_value (data_timing),
+            "refinement"    : rdf.escape_string_value (refinement),
+            "submitted"     : submitted,
             "modified_date" : current_epoch
         })
         return self.__run_query (query)

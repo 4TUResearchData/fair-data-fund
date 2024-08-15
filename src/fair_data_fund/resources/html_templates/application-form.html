@@ -23,9 +23,9 @@ var application_uuid = "{{application.uuid}}";
 <input type="text" id="name" name="title" value="{{application.name}}" />
 
 <label for="name">Pronouns</label>
-<input type="text" id="name" name="pronouns" value="{{application.pronouns}}" />
+<input type="text" id="pronouns" name="pronouns" value="{{application.pronouns}}" />
 
-<label for="name">Your institution</label>
+<label for="institution">Your institution</label>
 <select id="institution">
   <option value="" disabled{% if application.institution is none%} selected{% endif %}>Select institution</option>
   {%- for institution in institutions %}
@@ -58,13 +58,13 @@ var application_uuid = "{{application.uuid}}";
 
 <label>When was the data originally created?</label>
 <div id="creation-time-wrapper" class="options-wrapper">
-  <input class="subitem-checkbox" type="radio" name="data-timing" value="decades-ago" id="data-timing-decades-ago"><!--
+  <input class="subitem-checkbox" type="radio" name="data-timing" {% if application.data_timing == "decades-ago" %}checked="checked"{% endif %} value="decades-ago" id="data-timing-decades-ago"><!--
 --><label class="subitem-label no-head" for="data-timing-decades-ago">Decades ago</label><br>
-  <input class="subitem-checkbox" type="radio" name="data-timing" value="years-ago" id="data-timing-years-ago"><!--
+  <input class="subitem-checkbox" type="radio" name="data-timing" {% if application.data_timing == "years-ago" %}checked="checked"{% endif %} value="years-ago" id="data-timing-years-ago"><!--
 --><label class="subitem-label no-head" for="data-timing-years-ago">A few years ago</label><br>
-  <input class="subitem-checkbox" type="radio" name="data-timing" value="recent" id="data-timing-recent"><!--
+  <input class="subitem-checkbox" type="radio" name="data-timing" {% if application.data_timing == "recent" %}checked="checked"{% endif %} value="recent" id="data-timing-recent"><!--
 --><label class="subitem-label no-head" for="data-timing-recent">Recently completed research</label><br>
-  <input class="subitem-checkbox" type="radio" name="data-timing" value="recent" id="data-timing-ongoing"><!--
+  <input class="subitem-checkbox" type="radio" name="data-timing" {% if application.data_timing == "ongoing" %}checked="checked"{% endif %} value="ongoing" id="data-timing-ongoing"><!--
 --><label class="subitem-label no-head" for="data-timing-ongoing">In ongoing research</label><br>
 </div>
 
@@ -77,21 +77,21 @@ var application_uuid = "{{application.uuid}}";
 
 <label>FAIR data refinement needed</label>
 <div id="refinement-needed-wrapper" class="options-wrapper">
-  <input class="subitem-checkbox" type="radio" name="refinement-metadata-standards" value="apply-metadata-standards" id="refinement-metadata-standards"><!--
+  <input class="subitem-checkbox" type="radio" name="refinement-needed" {% if application.refinement == "apply-metadata-standards" %}checked="checked"{% endif %} value="apply-metadata-standards" id="refinement-metadata-standards"><!--
 --><label class="subitem-label no-head" for="refinement-metadata-standards">Identification and implementation of metadata standards</label><br>
-  <input class="subitem-checkbox" type="radio" name="refinement-additional-data" value="years-ago" id="refinement-additional-data"><!--
+  <input class="subitem-checkbox" type="radio" name="refinement-needed" {% if application.refinement == "additional-data" %}checked="checked"{% endif %} value="additional-data" id="refinement-additional-data"><!--
 --><label class="subitem-label no-head" for="refinement-additional-data">Addition of data and metadata documentation</label><br>
-  <input class="subitem-checkbox" type="radio" name="data-timing" value="anonymisation" id="refinement-anonymisation"><!--
+  <input class="subitem-checkbox" type="radio" name="refinement-needed" {% if application.refinement == "anonymisation" %}checked="checked"{% endif %} value="anonymisation" id="refinement-anonymisation"><!--
 --><label class="subitem-label no-head" for="refinement-anonymisation">Anonymisation</label><br>
-  <input class="subitem-checkbox" type="radio" name="data-timing" value="translation" id="refinement-translation"><!--
+  <input class="subitem-checkbox" type="radio" name="refinement-needed" {% if application.refinement == "translation" %}checked="checked"{% endif %} value="translation" id="refinement-translation"><!--
 --><label class="subitem-label no-head" for="refinement-translation">Translation</label><br>
-  <input class="subitem-checkbox" type="radio" name="data-timing" value="integration" id="refinement-integration"><!--
+  <input class="subitem-checkbox" type="radio" name="refinement-needed" {% if application.refinement == "integration" %}checked="checked"{% endif %} value="integration" id="refinement-integration"><!--
 --><label class="subitem-label no-head" for="refinement-integration">Integration with another dataset</label><br>
-  <input class="subitem-checkbox" type="radio" name="data-timing" value="recovery" id="refinement-recovery"><!--
+  <input class="subitem-checkbox" type="radio" name="refinement-needed" {% if application.refinement == "recovery" %}checked="checked"{% endif %} value="recovery" id="refinement-recovery"><!--
 --><label class="subitem-label no-head" for="refinement-recovery">Recovery</label><br>
-  <input class="subitem-checkbox" type="radio" name="data-timing" value="visualisation" id="refinement-visualisation"><!--
+  <input class="subitem-checkbox" type="radio" name="refinement-needed" {% if application.refinement == "visualisation" %}checked="checked"{% endif %} value="visualisation" id="refinement-visualisation"><!--
 --><label class="subitem-label no-head" for="refinement-visualisation">Visualisation to make data FAIR</label><br>
-  <input class="subitem-checkbox" type="radio" name="data-timing" value="promotion" id="refinement-promotion"><!--
+  <input class="subitem-checkbox" type="radio" name="refinement-needed" {% if application.refinement == "promotion" %}checked="checked"{% endif %} value="promotion" id="refinement-promotion"><!--
 --><label class="subitem-label no-head" for="refinement-promotion">Promotion of FAIR dataset (e.g. conference presentation)</label><br>
 </div>
 

@@ -53,8 +53,15 @@ function perform_upload (files, current_file, dataset_uuid) {
     });
 }
 
+function radio_button_value (name) {
+    let item = jQuery(`input[name='${name}']:checked`)[0];
+    if (item !== undefined) { item = item["value"]; }
+    else { item = null; }
+    return item;
+}
+
 function gather_form_data (application_uuid) {
-    let form_data = {
+    return {
         "uuid":          application_uuid,
         "name":          or_null(jQuery("#name").val()),
         "pronouns":      or_null(jQuery("#pronouns").val()),
@@ -64,19 +71,19 @@ function gather_form_data (application_uuid) {
         "position":      or_null(jQuery("#position").val()),
         "discipline":    or_null(jQuery("#discipline").val()),
         "datatype":      or_null(jQuery("#datatype").val()),
-        "description":   or_null(jQuery("#description").val()),
+        "description":   or_null(jQuery("#description .ql-editor").html()),
         "size":          or_null(jQuery("#size").val()),
-        "whodoesit":     or_null(jQuery("#whodoesit").val()),
-        "achievement":   or_null(jQuery("#achievement").val()),
-        "fair_summary":  or_null(jQuery("#fair_summary").val()),
-        "findable":      or_null(jQuery("#findable").val()),
-        "accessible":    or_null(jQuery("#accessible").val()),
-        "interoperable": or_null(jQuery("#interoperable").val()),
-        "reusable":      or_null(jQuery("#reusable").val()),
-        "summary":       or_null(jQuery("#summary").val())
+        "whodoesit":     or_null(jQuery("#whodoesit .ql-editor").html()),
+        "achievement":   or_null(jQuery("#achievement .ql-editor").html()),
+        "fair_summary":  or_null(jQuery("#fair_summary .ql-editor").html()),
+        "findable":      or_null(jQuery("#findable .ql-editor").html()),
+        "accessible":    or_null(jQuery("#accessible .ql-editor").html()),
+        "interoperable": or_null(jQuery("#interoperable .ql-editor").html()),
+        "reusable":      or_null(jQuery("#reusable .ql-editor").html()),
+        "summary":       or_null(jQuery("#summary .ql-editor").html()),
+        "data_timing":   radio_button_value ("data-timing"),
+        "refinement":    radio_button_value ("refinement-needed")
     }
-
-    return form_data;
 }
 
 function save_draft (application_uuid, event, notify=true, on_success=jQuery.noop) {
@@ -100,7 +107,29 @@ function save_draft (application_uuid, event, notify=true, on_success=jQuery.noo
         if (notify) {
             show_message ("failure", "<p>Failed to save draft. Please try again at a later time.</p>");
         }
-    });    
+    });
+}
+
+function submit (application_uuid, event, notify=true, on_success=jQuery.noop) {
+    if (event !== null) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    form_data = gather_form_data (application_uuid);
+    jQuery.ajax({
+        url:         `/application-form/${application_uuid}/submit`,
+        type:        "PUT",
+        contentType: "application/json",
+        accept:      "application/json",
+        data:        JSON.stringify(form_data),
+    }).done(function (data, textStatus) {
+        on_success ();
+        window.location.replace (`${data.redirect_to}`);
+    }).fail(function () {
+        if (notify) {
+            show_message ("failure", "<p>Failed to submit the form. Please try again at a later time.</p>");
+        }
+    });
 }
 
 jQuery(document).ready(function (){
@@ -163,4 +192,5 @@ jQuery(document).ready(function (){
     });
 
     jQuery("#save").on("click", function (event)   { save_draft (application_uuid, event); });
+    jQuery("#submit").on("click", function (event) { submit (application_uuid, event); });
 });

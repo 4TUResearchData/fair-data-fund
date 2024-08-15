@@ -20,7 +20,8 @@ DELETE {
     ?application   fdf:interoperable   ?interoperable .
     ?application   fdf:reusable        ?reusable .
     ?application   fdf:summary         ?summary .
-    
+    ?application   fdf:data_timing     ?data_timing .
+    ?application   fdf:refinement      ?refinement .
     ?application   fdf:modified_date   ?modified_date .
   }
 }
@@ -63,12 +64,19 @@ INSERT {
     ?application   fdf:reusable        {{reusable | safe }} .
     {%- endif %}{% if summary is not none: %}
     ?application   fdf:summary         {{summary | safe }} .
+    {%- endif %}{% if data_timing is not none: %}
+    ?application   fdf:data_timing     {{data_timing | safe }} .
+    {%- endif %}{% if refinement is not none: %}
+    ?application   fdf:refinement      {{refinement | safe }} .
+    {%- endif %}{% if submitted: %}
+    ?application   fdf:submit_date     "{{modified_date}}"^^xsd:integer .
     {%- endif %}
     ?application   fdf:modified_date   "{{modified_date}}"^^xsd:integer .
   }
 }
 WHERE {
   GRAPH <{{state_graph}}> {
+    ?application rdf:type fdf:Application .
     OPTIONAL { ?application   fdf:name            ?name . }
     OPTIONAL { ?application   fdf:pronouns        ?pronouns . }
     OPTIONAL { ?application   fdf:institution     ?institution . }
@@ -87,7 +95,11 @@ WHERE {
     OPTIONAL { ?application   fdf:interoperable   ?interoperable . }
     OPTIONAL { ?application   fdf:reusable        ?reusable . }
     OPTIONAL { ?application   fdf:summary         ?summary . }
+    OPTIONAL { ?application   fdf:data_timing     ?data_timing . }
+    OPTIONAL { ?application   fdf:refinement      ?refinement . }
     OPTIONAL { ?application   fdf:modified_date   ?modified_date . }
+
+    FILTER NOT EXISTS { ?application fdf:submit_date ?submit_date . }
     FILTER (?application = <application:{{uuid}}>)
   }
 }

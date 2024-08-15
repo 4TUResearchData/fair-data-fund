@@ -16,6 +16,7 @@ EXTRA_RESOURCES =                                                       \
     fair_data_fund/resources/html_templates/404.html                    \
     fair_data_fund/resources/html_templates/410.html                    \
     fair_data_fund/resources/html_templates/application-form.html       \
+    fair_data_fund/resources/html_templates/application-form-submitted.html \
     fair_data_fund/resources/html_templates/home.html                   \
     fair_data_fund/resources/html_templates/layout.html                 \
     fair_data_fund/resources/robots.txt                                 \

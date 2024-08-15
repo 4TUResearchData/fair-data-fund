@@ -32,6 +32,7 @@ class WebUserInterfaceServer:
             R("/application-form",                      self.ui_application_form),
             R("/application-form/<uuid>",               self.ui_application_form),
             R("/application-form/<uuid>/upload-budget", self.ui_upload_budget),
+            R("/application-form/<uuid>/submit",        self.ui_submit_application_form),
             R("/robots.txt",                            self.robots_txt),
         ])
         self.allow_crawlers   = False
@@ -474,29 +475,68 @@ class WebUserInterfaceServer:
 
         return self.respond_201 ()
 
+    def __handle_application_form (self, request, uuid, submit=False):
+        record     = request.get_json ()
+        errors     = []
+        data_timing_options = ["decades-ago", "years-ago", "recent", "ongoing"]
+        refinement_options  = ["apply-metadata-standards",      "additional-data",
+                               "anonymisation", "translation",   "integration",
+                               "recovery",     "visualisation", "promotion"]
+        parameters = {
+            "application_uuid": uuid,
+            "name":          validator.string_value (record, "name", 1, 255, error_list=errors),
+            "pronouns":      validator.string_value (record, "pronouns", 0, 255, error_list=errors),
+            "institution":   validator.uuid_value   (record, "institution", error_list=errors),
+            "faculty":       validator.string_value (record, "faculty", 0, 255, error_list=errors),
+            "department":    validator.string_value (record, "department", 0, 255, error_list=errors),
+            "position":      validator.string_value (record, "position", 0, 255, error_list=errors),
+            "discipline":    validator.string_value (record, "discipline", 0, 255, error_list=errors),
+            "datatype":      validator.string_value (record, "datatype", 0, 255, error_list=errors),
+            "description":   validator.string_value (record, "description", 3, 16384, error_list=errors),
+            "size":          validator.string_value (record, "size", 0, 255, error_list=errors),
+            "whodoesit":     validator.string_value (record, "whodoesit", 0, 8192, error_list=errors),
+            "achievement":   validator.string_value (record, "achievement", 0, 8192, error_list=errors),
+            "fair_summary":  validator.string_value (record, "fair_summary", 0, 16384, error_list=errors),
+            "findable":      validator.string_value (record, "findable", 0, 16384, error_list=errors),
+            "accessible":    validator.string_value (record, "accessible", 0, 16384, error_list=errors),
+            "interoperable": validator.string_value (record, "interoperable", 0, 16384, error_list=errors),
+            "reusable":      validator.string_value (record, "reusable", 0, 16384, error_list=errors),
+            "summary":       validator.string_value (record, "summary", 0, 16384, error_list=errors),
+            "data_timing":   validator.options_value (record, "data_timing", data_timing_options, error_list=errors),
+            "refinement":    validator.options_value (record, "refinement", refinement_options, error_list=errors),
+            "submitted":     submit
+        }
+
+        if errors:
+            return self.error_400_list (request, errors)
+
+        if self.db.update_application (**parameters):
+            return True
+
+        return False
+
     def ui_application_form (self, request, uuid=None):
         """Implements /application-form."""
 
         if request.method in ("GET", "HEAD"):
+            if not self.accepts_html (request):
+                return self.error_406 ("text/html")
+
             if uuid is None:
                 uuid = self.db.create_application ()
                 if uuid is None:
                     return self.error_500 ()
                 return redirect (f"/application-form/{uuid}", code=302)
 
-            if not self.accepts_html (request):
-                return self.error_406 ("text/html")
-
             try:
                 application  = self.db.applications (application_uuid = uuid)[0]
-                self.log.info ("Application: %s", application)
                 institutions = self.db.institutions ()
                 return self.__render_template (request,
                                                "application-form.html",
                                                application  = application,
                                                institutions = institutions)
-            except (TypeError, IndexError):
-                self.log.info ("Access denied 1.")
+            except (TypeError, IndexError) as error:
+                self.log.info ("Access denied: %s", error)
                 return self.error_403 (request)
 
         if request.method == "PUT":
@@ -505,36 +545,45 @@ class WebUserInterfaceServer:
                 if uuid is None:
                     return self.error_500 ()
 
-            record     = request.get_json ()
-            errors     = []
-            parameters = {
-                    "application_uuid": uuid,
-                    "name":          validator.string_value (record, "name", 1, 255, error_list=errors),
-                    "pronouns":      validator.string_value (record, "pronouns", 0, 255, error_list=errors),
-                    "institution":   validator.uuid_value   (record, "institution", error_list=errors),
-                    "faculty":       validator.string_value (record, "faculty", 0, 255, error_list=errors),
-                    "department":    validator.string_value (record, "department", 0, 255, error_list=errors),
-                    "position":      validator.string_value (record, "position", 0, 255, error_list=errors),
-                    "discipline":    validator.string_value (record, "discipline", 0, 255, error_list=errors),
-                    "datatype":      validator.string_value (record, "datatype", 0, 255, error_list=errors),
-                    "description":   validator.string_value (record, "description", 3, 16384, error_list=errors),
-                    "size":          validator.string_value (record, "size", 0, 255, error_list=errors),
-                    "whodoesit":     validator.string_value (record, "whodoesit", 0, 8192, error_list=errors),
-                    "achievement":   validator.string_value (record, "achievement", 0, 8192, error_list=errors),
-                    "fair_summary":  validator.string_value (record, "fair_summary", 0, 16384, error_list=errors),
-                    "findable":      validator.string_value (record, "findable", 0, 16384, error_list=errors),
-                    "accessible":    validator.string_value (record, "accessible", 0, 16384, error_list=errors),
-                    "interoperable": validator.string_value (record, "interoperable", 0, 16384, error_list=errors),
-                    "reusable":      validator.string_value (record, "reusable", 0, 16384, error_list=errors),
-                    "summary":       validator.string_value (record, "summary", 0, 16384, error_list=errors),
-                }
-
-            if errors:
-                return self.error_400_list (request, errors)
-
-            if self.db.update_application (**parameters):
+            handler = self.__handle_application_form (request, uuid)
+            if isinstance (handler, Response):
+                return Response
+            elif handler:
                 return self.respond_204 ()
-
             return self.error_500 ()
 
         return self.error_405 (["GET", "PUT"])
+
+    def ui_submit_application_form (self, request, uuid=None):
+        """Implements /application-form/<uuid>/submit."""
+
+        if request.method in ("GET", "HEAD"):
+            if uuid is None or not validator.is_valid_uuid (uuid):
+                return self.error_404 (request)
+
+            if not self.accepts_html (request):
+                return self.error_406 ("text/html")
+            try:
+                application  = self.db.applications (application_uuid = uuid,
+                                                     is_submitted     = True)[0]
+                institutions = self.db.institutions ()            
+                return self.__render_template (request,
+                                               "application-form-submitted.html",
+                                               application  = application,
+                                               institutions = institutions)
+            except (TypeError, IndexError):
+                return self.error_404 (request)
+
+        if request.method == "PUT":
+            handler = self.__handle_application_form (request, uuid, submit=True)
+            if isinstance (handler, Response):
+                return Response
+            elif handler:
+                if self.accepts_html (request):
+                    return redirect (f"/application-form/{uuid}/submit", code=302)
+                return self.response (json.dumps({
+                    "redirect_to": f"/application-form/{uuid}/submit"
+                }))
+
+        return self.error_405 (["GET", "PUT"])
+
