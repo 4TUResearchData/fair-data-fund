@@ -507,6 +507,10 @@ class WebUserInterfaceServer:
             "linked_publication": validator.options_value (record, "linked_publication", linked_publication_options, error_list=errors),
             "data_timing":   validator.options_value (record, "data_timing", data_timing_options, error_list=errors),
             "refinement":    validator.options_value (record, "refinement", refinement_options, error_list=errors),
+            "interview_consent": validator.boolean_value (record, "consent_to_interview", False, False),
+            "checkpoints_consent": validator.boolean_value (record, "consent_to_checkpoints", False, False),
+            "financial_consent": validator.boolean_value (record, "consent_to_financial", False, False),
+            "organization_consent": validator.boolean_value (record, "consent_to_organization", False, False),
             "submitted":     submit
         }
 

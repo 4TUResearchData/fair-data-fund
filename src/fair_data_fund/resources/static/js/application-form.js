@@ -61,6 +61,12 @@ function radio_button_value (name) {
 }
 
 function gather_form_data (application_uuid) {
+
+    let consent_to_interview = jQuery("#interview_consent").prop("checked");
+    let consent_to_checkpoints = jQuery("#checkpoints_consent").prop("checked");
+    let consent_to_financial = jQuery("#financial_consent").prop("checked");
+    let consent_to_organization = jQuery("#organization_consent").prop("checked");
+
     return {
         "uuid":          application_uuid,
         "name":          or_null(jQuery("#name").val()),
@@ -83,6 +89,10 @@ function gather_form_data (application_uuid) {
         "summary":       or_null(jQuery("#summary .ql-editor").html()),
         "promotion":     or_null(jQuery("#promotion .ql-editor").html()),
         "linked_publication": radio_button_value ("linked-publication"),
+        "consent_to_interview": consent_to_interview,
+        "consent_to_checkpoints": consent_to_checkpoints,
+        "consent_to_financial": consent_to_financial,
+        "consent_to_organization": consent_to_organization,
         "data_timing":   radio_button_value ("data-timing"),
         "refinement":    radio_button_value ("refinement-needed")
     }

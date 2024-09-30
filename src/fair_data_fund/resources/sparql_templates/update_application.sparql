@@ -24,12 +24,15 @@ DELETE {
     ?application   fdf:linked_publication ?linked_publication .
     ?application   fdf:data_timing     ?data_timing .
     ?application   fdf:refinement      ?refinement .
+    ?application   fdf:interview_consent ?interview_consent .
+    ?application   fdf:checkpoints_consent ?checkpoints_consent .
+    ?application   fdf:financial_consent ?financial_consent .
+    ?application   fdf:organization_consent ?organization_consent .
     ?application   fdf:modified_date   ?modified_date .
   }
 }
 INSERT {
   GRAPH <{{state_graph}}> {
-
     {%- if name is not none: %}
     ?application   fdf:name            {{name | safe }} .
     {%- endif %}{% if pronouns is not none: %}
@@ -74,6 +77,14 @@ INSERT {
     ?application   fdf:data_timing     {{data_timing | safe }} .
     {%- endif %}{% if refinement is not none: %}
     ?application   fdf:refinement      {{refinement | safe }} .
+    {%- endif %}{% if interview_consent is not none: %}
+    ?application   fdf:interview_consent {{interview_consent | safe }} .
+    {%- endif %}{% if checkpoints_consent is not none: %}
+    ?application   fdf:checkpoints_consent {{checkpoints_consent | safe }} .
+    {%- endif %}{% if financial_consent is not none: %}
+    ?application   fdf:financial_consent {{financial_consent | safe }} .
+    {%- endif %}{% if organization_consent is not none: %}
+    ?application   fdf:organization_consent {{organization_consent | safe }} .
     {%- endif %}{% if submitted: %}
     ?application   fdf:submit_date     "{{modified_date}}"^^xsd:integer .
     {%- endif %}
@@ -105,6 +116,10 @@ WHERE {
     OPTIONAL { ?application   fdf:linked_publication ?linked_publication . }
     OPTIONAL { ?application   fdf:data_timing     ?data_timing . }
     OPTIONAL { ?application   fdf:refinement      ?refinement . }
+    OPTIONAL { ?application   fdf:interview_consent ?interview_consent . }
+    OPTIONAL { ?application   fdf:checkpoints_consent ?checkpoints_consent . }
+    OPTIONAL { ?application   fdf:financial_consent ?financial_consent . }
+    OPTIONAL { ?application   fdf:organization_consent ?organization_consent . }
     OPTIONAL { ?application   fdf:modified_date   ?modified_date . }
 
     FILTER NOT EXISTS { ?application fdf:submit_date ?submit_date . }

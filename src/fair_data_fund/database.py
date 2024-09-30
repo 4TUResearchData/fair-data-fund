@@ -331,7 +331,9 @@ class SparqlInterface:
                             accessible=None, interoperable=None, reusable=None,
                             summary=None, data_timing=None, refinement=None,
                             promotion=None, linked_publication=None,
-                            submitted=False):
+                            submitted=False, interview_consent=None,
+                            checkpoints_consent=None, financial_consent=None,
+                            organization_consent=None):
         """
         Returns True when the application identified by UUID has been updated,
         False otherwise.
@@ -361,6 +363,10 @@ class SparqlInterface:
             "linked_publication" : rdf.escape_string_value (linked_publication),
             "data_timing"   : rdf.escape_string_value (data_timing),
             "refinement"    : rdf.escape_string_value (refinement),
+            "interview_consent" : rdf.escape_boolean_value (interview_consent),
+            "checkpoints_consent" : rdf.escape_boolean_value (checkpoints_consent),
+            "financial_consent" : rdf.escape_boolean_value (financial_consent),
+            "organization_consent" : rdf.escape_boolean_value (organization_consent),
             "submitted"     : submitted,
             "modified_date" : current_epoch
         })
