@@ -137,7 +137,33 @@ function submit (application_uuid, event, notify=true, on_success=jQuery.noop) {
     }).done(function (data, textStatus) {
         on_success ();
         window.location.replace (`${data.redirect_to}`);
-    }).fail(function () {
+    }).fail(function (response, text_status, error_code) {
+        jQuery(".missing-required").removeClass("missing-required");
+        let error_messages = jQuery.parseJSON (response.responseText);
+        let error_message = "<p>Please fill in all required fields.</p>";
+        if (error_messages.length > 0) {
+            error_message = "<p>Please fill in all required fields.</p>";
+            for (let message of error_messages) {
+                if (message.field_name == "data_timing") {
+                    jQuery("#creation-time-wrapper").addClass("missing-required");
+                } else if (message.field_name == "refinement") {
+                    jQuery("#refinement-needed-wrapper").addClass("missing-required");
+                } else if (message.field_name == "linked_publication") {
+                    jQuery("#linked-publication-wrapper").addClass("missing-required");
+                } else if (message.field_name == "checkpoints_consent") {
+                    jQuery("#checkpoints-consent-wrapper").addClass("missing-required");
+                } else if (message.field_name == "financial_consent") {
+                    jQuery("#financial-consent-wrapper").addClass("missing-required");
+                } else if (message.field_name == "organization_consent") {
+                    jQuery("#organization-consent-wrapper").addClass("missing-required");
+                } else {
+                    jQuery(`#${message.field_name}`).addClass("missing-required");
+                }
+            }
+        }
+        show_message ("failure", `${error_message}`);
+        jQuery("#content-wrapper").css('opacity', '1.0');
+        jQuery("#content").removeClass("loader-top");
         if (notify) {
             show_message ("failure", "<p>Failed to submit the form. Please try again at a later time.</p>");
         }

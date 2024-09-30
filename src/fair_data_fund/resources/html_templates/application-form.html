@@ -17,36 +17,36 @@ var application_uuid = "{{application.uuid}}";
 <h1>FAIR Data Fund Application Form</h1>
 
 <h2>Basic information</h2>
-<label for="name">Your name</label>
+<label for="name">Your name</label>&nbsp;<span class="required-field">&#8727;</span>
 <input type="text" id="name" name="title" value="{{application.name}}" />
 
 <label for="name">Pronouns</label>
 <input type="text" id="pronouns" name="pronouns" value="{{application.pronouns}}" />
 
-<label for="institution">Your institution</label>
+<label for="institution">Your institution</label>&nbsp;<span class="required-field">&#8727;</span>
 <select id="institution">
-  <option value="" disabled{% if application.institution is none%} selected{% endif %}>Select institution</option>
+  <option value="" disabled{% if not application.institution %} selected{% endif %}>Select institution</option>
   {%- for institution in institutions %}
   <option id="institution-{{institution.uuid}}" value="{{institution.uuid}}"{% if institution.uuid == application.institution %} selected{% endif %}>{{institution.name}}</option>
   {%- endfor %}
 </select>
 
-<label for="faculty">Your faculty or group</label>
+<label for="faculty">Your faculty or group</label>&nbsp;<span class="required-field">&#8727;</span>
 <input type="text" id="faculty" name="faculty" value="{{application.faculty}}" />
 
-<label for="department">Your department</label>
+<label for="department">Your department</label>&nbsp;<span class="required-field">&#8727;</span>
 <input type="text" id="department" name="department" value="{{application.department}}" />
 
-<label for="position">Your position</label>
+<label for="position">Your position</label>&nbsp;<span class="required-field">&#8727;</span>
 <input type="text" id="position" name="position" value="{{application.position}}" />
 
-<label for="discipline">Your research discipline</label>
+<label for="discipline">Your research discipline</label>&nbsp;<span class="required-field">&#8727;</span>
 <input type="text" id="discipline" name="discipline" value="{{application.discipline}}" />
 
 <label for="datatype">Data types handled in the project</label><div class="fas fa-question-circle help-icon"><span class="help-text">For example: Quantitive data, qualitative data, research software.</span></div>
 <input type="text" id="datatype" name="datatype" value="{{application.datatype}}" />
 
-<label for="size">What is the volume (in gigabytes) of the total dataset?</label>
+<label for="size">What is the volume (in gigabytes) of the total dataset?</label>&nbsp;<span class="required-field">&#8727;</span>
 <input type="text" id="size" name="size" value="{{application.size}}" />
 
 <label>Briefly describe the content of the data and file formats before obtaining funding</label><div class="fas fa-question-circle help-icon"><span class="help-text">Include a description of the data (raw, processed, analyzed) and research software as these are currently available. In later questions, you can elaborate on how the FAIR principles will be implemented. </span></div>
@@ -54,7 +54,7 @@ var application_uuid = "{{application.uuid}}";
   {{application.description | default("", True) | replace("\\n", "<br>") | safe }}
 </div>
 
-<label>When was the data created?</label>
+<label>When was the data created?</label>&nbsp;<span class="required-field">&#8727;</span>
 <div id="creation-time-wrapper" class="options-wrapper">
   <input class="subitem-checkbox" type="radio" name="data-timing" {% if application.data_timing == "decades-ago" %}checked="checked"{% endif %} value="decades-ago" id="data-timing-decades-ago"><!--
 --><label class="subitem-label no-head" for="data-timing-decades-ago">Decades ago</label><br>
@@ -66,7 +66,7 @@ var application_uuid = "{{application.uuid}}";
 --><label class="subitem-label no-head" for="data-timing-ongoing">In ongoing research</label><br>
 </div>
 
-<label>Are or will the data be linked to a publication?</label>
+<label>Are or will the data be linked to a publication?</label>&nbsp;<span class="required-field">&#8727;</span>
 <div id="linked-publication-wrapper" class="options-wrapper">
   <input class="subitem-checkbox" type="radio" name="linked-publication" {% if application.linked_publication == "yes" %}checked="checked"{% endif %} value="yes" id="linked-publication-yes"><!--
 --><label class="subitem-label no-head" for="linked-publication-yes">Yes</label><br>
@@ -76,7 +76,7 @@ var application_uuid = "{{application.uuid}}";
 
 <h2>Questions</h2>
 
-<label>Summarise how you will make your dataset FAIR beyond publishing it in the 4TU.ResearchData repository.</label><div class="fas fa-question-circle help-icon"><span class="help-text">Describe how the above data (mentioned in question 1) will be handled resulting in a data package or software package ready for deposit in 4TU.ResearchData.</span></div>
+<label>Summarise how you will make your dataset FAIR beyond publishing it in the 4TU.ResearchData repository.</label><div class="fas fa-question-circle help-icon"><span class="help-text">Describe how the above data (mentioned in question 1) will be handled resulting in a data package or software package ready for deposit in 4TU.ResearchData.</span></div><span class="required-field">&#8727;</span>
 <div class="pre-texteditor">
 <p>Examples:</p>
 <ul>
@@ -98,7 +98,7 @@ var application_uuid = "{{application.uuid}}";
   {{application.fair_summary | default("", True) | replace("\\n", "<br>") | safe }}
 </div>
 
-<label>FAIR data refinement needed</label>
+<label>FAIR data refinement needed</label>&nbsp;<span class="required-field">&#8727;</span>
 <div id="refinement-needed-wrapper" class="options-wrapper">
   <input class="subitem-checkbox" type="radio" name="refinement-needed" {% if application.refinement == "apply-metadata-standards" %}checked="checked"{% endif %} value="apply-metadata-standards" id="refinement-metadata-standards"><!--
 --><label class="subitem-label no-head" for="refinement-metadata-standards">Identification and implementation of metadata standards</label><br>
@@ -118,43 +118,43 @@ var application_uuid = "{{application.uuid}}";
 --><label class="subitem-label no-head" for="refinement-promotion">Promotion of FAIR dataset (e.g. conference presentation)</label><br>
 </div>
 
-<label>Who will conduct the work and make your dataset FAIR and how long will the process take?</label><div class="fas fa-question-circle help-icon"><span class="help-text">Collaboration is encouraged. Please indicate who is responsible for the tasks described to make the dataset FAIR and indicate the time effort of each person. The project team may vary depending on the tasks or stage.</span></div>
+<label>Who will conduct the work and make your dataset FAIR and how long will the process take?</label><div class="fas fa-question-circle help-icon"><span class="help-text">Collaboration is encouraged. Please indicate who is responsible for the tasks described to make the dataset FAIR and indicate the time effort of each person. The project team may vary depending on the tasks or stage.</span></div><span class="required-field">&#8727;</span>
 
 <div id="whodoesit" class="texteditor">
   {{application.whodoesit | default("", True) | replace("\\n", "<br>") | safe }}
 </div>
 
-<label>Summarise what you plan to achieve by refining and publishing the dataset.</label>
+<label>Summarise what you plan to achieve by refining and publishing the dataset.</label>&nbsp;<span class="required-field">&#8727;</span>
 <div id="achievement" class="texteditor">
   {{application.achievement | default("", True) | replace("\\n", "<br>") | safe }}
 </div>
 
-<label>Explain how refining and publishing the dataset will make it 'Findable' (Maximum 100 words)</label>
+<label>Explain how refining and publishing the dataset will make it 'Findable' (Maximum 100 words)</label>&nbsp;<span class="required-field">&#8727;</span>
 <div id="findable" class="texteditor">
   {{application.findable | default("", True) | replace("\\n", "<br>") | safe }}
 </div>
 
-<label>Explain how refining and publishing the dataset will make it 'Accessible' (Maximum 100 words)</label>
+<label>Explain how refining and publishing the dataset will make it 'Accessible' (Maximum 100 words)</label>&nbsp;<span class="required-field">&#8727;</span>
 <div id="accessible" class="texteditor">
   {{application.accessible | default("", True) | replace("\\n", "<br>") | safe }}
 </div>
 
-<label>Explain how refining and publishing the dataset will make it 'Interoperable' (Maximum 100 words)</label>
+<label>Explain how refining and publishing the dataset will make it 'Interoperable' (Maximum 100 words)</label>&nbsp;<span class="required-field">&#8727;</span>
 <div id="interoperable" class="texteditor">
   {{application.interoperable | default("", True) | replace("\\n", "<br>") | safe }}
 </div>
 
-<label>Explain how refining and publishing the dataset will make it 'Reusable' (Maximum 100 words)</label>
+<label>Explain how refining and publishing the dataset will make it 'Reusable' (Maximum 100 words)</label>&nbsp;<span class="required-field">&#8727;</span>
 <div id="reusable" class="texteditor">
   {{application.reusable | default("", True) | replace("\\n", "<br>") | safe }}
 </div>
 
-<label>Provide a summary of your application that can be published on the 4TU.ResearchData community website and social media channels (Maximum 50 words).</label>
+<label>Provide a summary of your application that can be published on the 4TU.ResearchData community website and social media channels (Maximum 50 words).</label>&nbsp;<span class="required-field">&#8727;</span>
 <div id="summary" class="texteditor">
   {{application.summary | default("", True) | replace("\\n", "<br>") | safe }}
 </div>
 
-<label>If applicable, please describe how you will promote your FAIR dataset.</label><div class="fas fa-question-circle help-icon"><span class="help-text">For example conference presentation, cross-reference in publications, reuse, etc., and/or if support is requested.</span></div>
+<label>If applicable, please describe how you will promote your FAIR dataset.</label><div class="fas fa-question-circle help-icon"><span class="help-text">For example conference presentation, cross-reference in publications, reuse, etc., and/or if support is requested.</span></div><span class="required-field">&#8727;</span>
 <div id="promotion" class="texteditor">
   {{application.promotion | default("", True) | replace("\\n", "<br>") | safe }}
 </div>
@@ -162,7 +162,7 @@ var application_uuid = "{{application.uuid}}";
 
 <label>Budget estimation</label><div class="fas fa-question-circle help-icon"><span class="help-text">To receive the budget,
     you need to provide us with the IBAN and identification code (OFI, BIC, or similar) of your department/faculty. We encourage you to gather that
-    information as soon as possible as it might take a while before receiving them.</span></div>
+    information as soon as possible as it might take a while before receiving them.</span></div><span class="required-field">&#8727;</span>
 <div id="budget-upload-wrapper" class="options-wrapper">
   <p>Please fill in the <a href="#">this budget template spreadsheet</a> and upload it below.</p>
   <p class="highlight">To receive the budget, you need to provide us with the IBAN and identification code (OFI, BIC, or similar) of your department/faculty.
@@ -177,26 +177,26 @@ We encourage you to gather that information as soon as possible as it might take
   </div>
 </div>
 
-<label>Mandatory interview</label>&nbsp;<span class="required-field">&#8727;</span>
+<label>Mandatory interview</label>
 <div class="options-wrapper">
   <input type="checkbox" name="interview_consent" id="interview_consent"{% if application.interview_consent %} checked="checked"{% endif %}>
   <label class="no-head" for="interview_consent">I consent to participate in an interview with a staff member at 4TU.ResearchData to have the application and research data showcased on the 4TU.ResearchData community website and social media channels.</label>
 </div>
 
 <label>Mandatory follow-up</label>&nbsp;<span class="required-field">&#8727;</span>
-<div class="options-wrapper">
+<div id="checkpoints-consent-wrapper" class="options-wrapper">
   <input type="checkbox" name="checkpoints_consent" id="checkpoints_consent"{% if application.checkpoints_consent %} checked="checked"{% endif %}>
   <label class="no-head" for="checkpoints_consent">I consent to attend three checkpoints with a staff member at 4TU.ResearchData as part of the support offered by the 4TU.ResearchData team.</label>
 </div>
 
 <label>Financial information</label>&nbsp;<span class="required-field">&#8727;</span>
-<div class="options-wrapper">
+<div id="financial-consent-wrapper" class="options-wrapper">
   <input type="checkbox" name="financial_consent" id="financial_consent"{% if application.financial_consent %} checked="checked"{% endif %}>
-  <label class="no-head" for="financial_consent">I will gather the following information from my Institute before February 1, 2025: IBAN and OFI number.</label>
+  <label class="no-head" for="financial_consent">I will gather the following information from my institute before February 1, 2025: IBAN and OFI number.</label>
 </div>
 
 <label>Notification</label>&nbsp;<span class="required-field">&#8727;</span>
-<div class="options-wrapper">
+<div id="organization-consent-wrapper"class="options-wrapper">
   <input type="checkbox" name="organization_consent" id="organization_consent"{% if application.organization_consent %} checked="checked"{% endif %}>
   <label class="no-head" for="organization_consent">I understand that my organization will receive the requested budget, these funds will be used solely for the tasks described in the budget estimation.</label>
 </div>

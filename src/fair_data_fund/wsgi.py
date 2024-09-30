@@ -483,34 +483,57 @@ class WebUserInterfaceServer:
                                "anonymisation", "translation",   "integration",
                                "recovery",     "visualisation", "promotion"]
         linked_publication_options = ["yes", "no"]
+
+        interview_consent    = validator.boolean_value (record, "consent_to_interview",    False, False, error_list=errors)
+        checkpoints_consent  = validator.boolean_value (record, "consent_to_checkpoints",  False, False, error_list=errors)
+        financial_consent    = validator.boolean_value (record, "consent_to_financial",    False, False, error_list=errors)
+        organization_consent = validator.boolean_value (record, "consent_to_organization", False, False, error_list=errors)
+
+        if submit:
+            if not checkpoints_consent:
+                errors.append({
+                    "field_name": "checkpoints_consent",
+                    "message": "To obtain funding you must consent to attend three checkpoints with a staff member at 4TU.ResearchData."
+                })
+            if not financial_consent:
+                errors.append({
+                    "field_name": "financial_consent",
+                    "message": "To obtain funding you must gather the financial information from your institute."
+                })
+            if not organization_consent:
+                errors.append({
+                    "field_name": "organization_consent",
+                    "message": "To obtain funding you must agree that your organization will receive the requested budget."
+                })
+
         parameters = {
             "application_uuid": uuid,
-            "name":          validator.string_value (record, "name", 1, 255, error_list=errors),
-            "pronouns":      validator.string_value (record, "pronouns", 0, 255, error_list=errors),
-            "institution":   validator.uuid_value   (record, "institution", error_list=errors),
-            "faculty":       validator.string_value (record, "faculty", 0, 255, error_list=errors),
-            "department":    validator.string_value (record, "department", 0, 255, error_list=errors),
-            "position":      validator.string_value (record, "position", 0, 255, error_list=errors),
-            "discipline":    validator.string_value (record, "discipline", 0, 255, error_list=errors),
-            "datatype":      validator.string_value (record, "datatype", 0, 255, error_list=errors),
-            "description":   validator.string_value (record, "description", 3, 16384, error_list=errors),
-            "size":          validator.string_value (record, "size", 0, 255, error_list=errors),
-            "whodoesit":     validator.string_value (record, "whodoesit", 0, 8192, error_list=errors),
-            "achievement":   validator.string_value (record, "achievement", 0, 8192, error_list=errors),
-            "fair_summary":  validator.string_value (record, "fair_summary", 0, 16384, error_list=errors),
-            "findable":      validator.string_value (record, "findable", 0, 16384, error_list=errors),
-            "accessible":    validator.string_value (record, "accessible", 0, 16384, error_list=errors),
-            "interoperable": validator.string_value (record, "interoperable", 0, 16384, error_list=errors),
-            "reusable":      validator.string_value (record, "reusable", 0, 16384, error_list=errors),
-            "summary":       validator.string_value (record, "summary", 0, 16384, error_list=errors),
-            "promotion":     validator.string_value (record, "promotion", 0, 16384, error_list=errors),
-            "linked_publication": validator.options_value (record, "linked_publication", linked_publication_options, error_list=errors),
-            "data_timing":   validator.options_value (record, "data_timing", data_timing_options, error_list=errors),
-            "refinement":    validator.options_value (record, "refinement", refinement_options, error_list=errors),
-            "interview_consent": validator.boolean_value (record, "consent_to_interview", False, False),
-            "checkpoints_consent": validator.boolean_value (record, "consent_to_checkpoints", False, False),
-            "financial_consent": validator.boolean_value (record, "consent_to_financial", False, False),
-            "organization_consent": validator.boolean_value (record, "consent_to_organization", False, False),
+            "name":          validator.string_value (record, "name",          1, 255,   submit, error_list=errors),
+            "pronouns":      validator.string_value (record, "pronouns",      0, 255,   error_list=errors),
+            "institution":   validator.uuid_value   (record, "institution",   submit,   error_list=errors),
+            "faculty":       validator.string_value (record, "faculty",       0, 255,   submit, error_list=errors),
+            "department":    validator.string_value (record, "department",    0, 255,   submit, error_list=errors),
+            "position":      validator.string_value (record, "position",      0, 255,   submit, error_list=errors),
+            "discipline":    validator.string_value (record, "discipline",    0, 255,   submit, error_list=errors),
+            "datatype":      validator.string_value (record, "datatype",      0, 255,   submit, error_list=errors),
+            "description":   validator.string_value (record, "description",   3, 16384, submit, error_list=errors),
+            "size":          validator.string_value (record, "size",          0, 255,   submit, error_list=errors),
+            "whodoesit":     validator.string_value (record, "whodoesit",     0, 8192,  submit, error_list=errors),
+            "achievement":   validator.string_value (record, "achievement",   0, 8192,  submit, error_list=errors),
+            "fair_summary":  validator.string_value (record, "fair_summary",  0, 16384, submit, error_list=errors),
+            "findable":      validator.string_value (record, "findable",      0, 16384, submit, error_list=errors),
+            "accessible":    validator.string_value (record, "accessible",    0, 16384, submit, error_list=errors),
+            "interoperable": validator.string_value (record, "interoperable", 0, 16384, submit, error_list=errors),
+            "reusable":      validator.string_value (record, "reusable",      0, 16384, submit, error_list=errors),
+            "summary":       validator.string_value (record, "summary",       0, 16384, submit, error_list=errors),
+            "promotion":     validator.string_value (record, "promotion",     0, 16384, submit, error_list=errors),
+            "linked_publication": validator.options_value (record, "linked_publication", linked_publication_options, submit, error_list=errors),
+            "data_timing":   validator.options_value (record, "data_timing", data_timing_options, submit, error_list=errors),
+            "refinement":    validator.options_value (record, "refinement", refinement_options, submit, error_list=errors),
+            "interview_consent":    interview_consent,
+            "checkpoints_consent":  checkpoints_consent,
+            "financial_consent":    financial_consent,
+            "organization_consent": organization_consent,
             "submitted":     submit
         }
 
@@ -584,13 +607,14 @@ class WebUserInterfaceServer:
         if request.method == "PUT":
             handler = self.__handle_application_form (request, uuid, submit=True)
             if isinstance (handler, Response):
-                return Response
+                return handler
             elif handler:
                 if self.accepts_html (request):
                     return redirect (f"/application-form/{uuid}/submit", code=302)
                 return self.response (json.dumps({
                     "redirect_to": f"/application-form/{uuid}/submit"
                 }))
+            return self.error_500 ()
 
         return self.error_405 (["GET", "PUT"])
 
