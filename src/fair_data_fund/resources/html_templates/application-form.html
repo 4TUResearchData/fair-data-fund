@@ -13,8 +13,6 @@ var application_uuid = "{{application.uuid}}";
 <link href="/static/css/quill.4tu.css" rel="stylesheet">
 <link href="/static/css/dropzone.min.css" rel="stylesheet">
 {% endblock %}
-{% block steps %}
-{% endblock %}
 {% block body %}
 <h1>FAIR Data Fund Application Form</h1>
 
@@ -70,9 +68,9 @@ var application_uuid = "{{application.uuid}}";
 
 <label>Are or will the data be linked to a publication?</label>
 <div id="linked-publication-wrapper" class="options-wrapper">
-  <input class="subitem-checkbox" type="radio" name="linked-publication" {% if application.data_timing == "yes" %}checked="checked"{% endif %} value="yes" id="linked-publication-yes"><!--
+  <input class="subitem-checkbox" type="radio" name="linked-publication" {% if application.linked_publication == "yes" %}checked="checked"{% endif %} value="yes" id="linked-publication-yes"><!--
 --><label class="subitem-label no-head" for="linked-publication-yes">Yes</label><br>
-<input class="subitem-checkbox" type="radio" name="linked-publication" {% if application.data_timing == "no" %}checked="checked"{% endif %} value="no" id="linked-publication-no"><!--
+<input class="subitem-checkbox" type="radio" name="linked-publication" {% if application.linked_publication == "no" %}checked="checked"{% endif %} value="no" id="linked-publication-no"><!--
 --><label class="subitem-label no-head" for="linked-publication-no">No</label><br>
 </div>
 
@@ -181,25 +179,25 @@ We encourage you to gather that information as soon as possible as it might take
 
 <label>Mandatory interview</label>&nbsp;<span class="required-field">&#8727;</span>
 <div class="options-wrapper">
-  <input type="checkbox" name="interview_consent" id="interview_consent">
+  <input type="checkbox" name="interview_consent" id="interview_consent"{% if application.interview_consent %} checked="checked"{% endif %}>
   <label class="no-head" for="interview_consent">I consent to participate in an interview with a staff member at 4TU.ResearchData to have the application and research data showcased on the 4TU.ResearchData community website and social media channels.</label>
 </div>
 
 <label>Mandatory follow-up</label>&nbsp;<span class="required-field">&#8727;</span>
 <div class="options-wrapper">
-  <input type="checkbox" name="checkpoints_consent" id="checkpoints_consent">
+  <input type="checkbox" name="checkpoints_consent" id="checkpoints_consent"{% if application.checkpoints_consent %} checked="checked"{% endif %}>
   <label class="no-head" for="checkpoints_consent">I consent to attend three checkpoints with a staff member at 4TU.ResearchData as part of the support offered by the 4TU.ResearchData team.</label>
 </div>
 
 <label>Financial information</label>&nbsp;<span class="required-field">&#8727;</span>
 <div class="options-wrapper">
-  <input type="checkbox" name="financial_consent" id="financial_consent">
+  <input type="checkbox" name="financial_consent" id="financial_consent"{% if application.financial_consent %} checked="checked"{% endif %}>
   <label class="no-head" for="financial_consent">I will gather the following information from my Institute before February 1, 2025: IBAN and OFI number.</label>
 </div>
 
 <label>Notification</label>&nbsp;<span class="required-field">&#8727;</span>
 <div class="options-wrapper">
-  <input type="checkbox" name="organization_consent" id="organization_consent">
+  <input type="checkbox" name="organization_consent" id="organization_consent"{% if application.organization_consent %} checked="checked"{% endif %}>
   <label class="no-head" for="organization_consent">I understand that my organization will receive the requested budget, these funds will be used solely for the tasks described in the budget estimation.</label>
 </div>
 

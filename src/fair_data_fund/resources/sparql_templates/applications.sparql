@@ -4,7 +4,8 @@ SELECT DISTINCT ?uuid ?name ?pronouns ?institution ?faculty ?department
                 ?position ?discipline ?datatype ?description ?size ?whodoesit
                 ?achievement ?fair_summary ?findable ?accessible ?interoperable
                 ?reusable ?summary ?data_timing ?refinement ?submit_date
-                ?modified_date
+                ?modified_date ?linked_publication ?interview_consent ?promotion
+                ?checkpoints_consent ?financial_consent ?organization_consent
 WHERE {
   GRAPH <{{state_graph}}> {
     ?application rdf:type fdf:Application .
@@ -26,8 +27,14 @@ WHERE {
     OPTIONAL { ?application   fdf:interoperable   ?interoperable . }
     OPTIONAL { ?application   fdf:reusable        ?reusable . }
     OPTIONAL { ?application   fdf:summary         ?summary . }
+    OPTIONAL { ?application   fdf:promotion       ?promotion . }
+    OPTIONAL { ?application   fdf:linked_publication ?linked_publication . }
     OPTIONAL { ?application   fdf:data_timing     ?data_timing . }
     OPTIONAL { ?application   fdf:refinement      ?refinement . }
+    OPTIONAL { ?application   fdf:interview_consent ?interview_consent . }
+    OPTIONAL { ?application   fdf:checkpoints_consent ?checkpoints_consent . }
+    OPTIONAL { ?application   fdf:financial_consent ?financial_consent . }
+    OPTIONAL { ?application   fdf:organization_consent ?organization_consent . }
     OPTIONAL { ?application   fdf:modified_date   ?modified_date . }
     OPTIONAL { ?application   fdf:submit_date     ?submit_date . }
 
