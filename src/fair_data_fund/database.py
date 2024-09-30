@@ -330,6 +330,7 @@ class SparqlInterface:
                             achievement=None, fair_summary=None, findable=None,
                             accessible=None, interoperable=None, reusable=None,
                             summary=None, data_timing=None, refinement=None,
+                            promotion=None, linked_publication=None,
                             submitted=False):
         """
         Returns True when the application identified by UUID has been updated,
@@ -356,6 +357,8 @@ class SparqlInterface:
             "interoperable" : rdf.escape_string_value (interoperable),
             "reusable"      : rdf.escape_string_value (reusable),
             "summary"       : rdf.escape_string_value (summary),
+            "promotion"     : rdf.escape_string_value (promotion),
+            "linked_publication" : rdf.escape_string_value (linked_publication),
             "data_timing"   : rdf.escape_string_value (data_timing),
             "refinement"    : rdf.escape_string_value (refinement),
             "submitted"     : submitted,

@@ -482,6 +482,7 @@ class WebUserInterfaceServer:
         refinement_options  = ["apply-metadata-standards",      "additional-data",
                                "anonymisation", "translation",   "integration",
                                "recovery",     "visualisation", "promotion"]
+        linked_publication_options = ["yes", "no"]
         parameters = {
             "application_uuid": uuid,
             "name":          validator.string_value (record, "name", 1, 255, error_list=errors),
@@ -502,6 +503,8 @@ class WebUserInterfaceServer:
             "interoperable": validator.string_value (record, "interoperable", 0, 16384, error_list=errors),
             "reusable":      validator.string_value (record, "reusable", 0, 16384, error_list=errors),
             "summary":       validator.string_value (record, "summary", 0, 16384, error_list=errors),
+            "promotion":     validator.string_value (record, "promotion", 0, 16384, error_list=errors),
+            "linked_publication": validator.options_value (record, "linked_publication", linked_publication_options, error_list=errors),
             "data_timing":   validator.options_value (record, "data_timing", data_timing_options, error_list=errors),
             "refinement":    validator.options_value (record, "refinement", refinement_options, error_list=errors),
             "submitted":     submit

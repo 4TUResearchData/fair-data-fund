@@ -45,18 +45,18 @@ var application_uuid = "{{application.uuid}}";
 <label for="discipline">Your research discipline</label>
 <input type="text" id="discipline" name="discipline" value="{{application.discipline}}" />
 
-<label for="datatype">Type of data</label>
+<label for="datatype">Data types handled in the project</label><div class="fas fa-question-circle help-icon"><span class="help-text">For example: Quantitive data, qualitative data, research software.</span></div>
 <input type="text" id="datatype" name="datatype" value="{{application.datatype}}" />
 
-<label for="size">Dataset size (in gigabytes)</label>
+<label for="size">What is the volume (in gigabytes) of the total dataset?</label>
 <input type="text" id="size" name="size" value="{{application.size}}" />
 
-<label>Briefly describe the content of the dataset and file formats</label>
+<label>Briefly describe the content of the data and file formats before obtaining funding</label><div class="fas fa-question-circle help-icon"><span class="help-text">Include a description of the data (raw, processed, analyzed) and research software as these are currently available. In later questions, you can elaborate on how the FAIR principles will be implemented. </span></div>
 <div id="description" class="texteditor">
   {{application.description | default("", True) | replace("\\n", "<br>") | safe }}
 </div>
 
-<label>When was the data originally created?</label>
+<label>When was the data created?</label>
 <div id="creation-time-wrapper" class="options-wrapper">
   <input class="subitem-checkbox" type="radio" name="data-timing" {% if application.data_timing == "decades-ago" %}checked="checked"{% endif %} value="decades-ago" id="data-timing-decades-ago"><!--
 --><label class="subitem-label no-head" for="data-timing-decades-ago">Decades ago</label><br>
@@ -68,9 +68,34 @@ var application_uuid = "{{application.uuid}}";
 --><label class="subitem-label no-head" for="data-timing-ongoing">In ongoing research</label><br>
 </div>
 
+<label>Are or will the data be linked to a publication?</label>
+<div id="linked-publication-wrapper" class="options-wrapper">
+  <input class="subitem-checkbox" type="radio" name="linked-publication" {% if application.data_timing == "yes" %}checked="checked"{% endif %} value="yes" id="linked-publication-yes"><!--
+--><label class="subitem-label no-head" for="linked-publication-yes">Yes</label><br>
+<input class="subitem-checkbox" type="radio" name="linked-publication" {% if application.data_timing == "no" %}checked="checked"{% endif %} value="no" id="linked-publication-no"><!--
+--><label class="subitem-label no-head" for="linked-publication-no">No</label><br>
+</div>
+
 <h2>Questions</h2>
 
-<label>Summarise how you will make your dataset FAIR beyond publishing it in the 4TU.ResearchData repository.</label><div class="fas fa-question-circle help-icon"><span class="help-text">Your answer will be evaluated based on the information you provide on data citation, access permission, metadata, documentation, data types and formats, and licensing. We encourage you to pay attention to all the mentioned elements in your summary.</span></div>
+<label>Summarise how you will make your dataset FAIR beyond publishing it in the 4TU.ResearchData repository.</label><div class="fas fa-question-circle help-icon"><span class="help-text">Describe how the above data (mentioned in question 1) will be handled resulting in a data package or software package ready for deposit in 4TU.ResearchData.</span></div>
+<div class="pre-texteditor">
+<p>Examples:</p>
+<ul>
+  <li>Raw or processed data or both depending on what is most useful or common in a discipline</li>
+  <li>Conversion to open and preferable file formats</li>
+  <li>Logical file organization</li>
+  <li>Documentation on methods of data collection and file structures, data provenance (e.g. Readme)</li>
+  <li>Identification and implementation of metadata standards</li>
+  <li>Addition of documentation in a text-based, non-standard format</li>
+  <li>Anonymization</li>
+  <li>Translation</li>
+  <li>Integration with another dataset</li>
+  <li>Recovery</li>
+  <li>Visualisation to make data FAIR</li>
+  <li>...</li>
+</ul>
+</div>
 <div id="fair_summary" class="texteditor">
   {{application.fair_summary | default("", True) | replace("\\n", "<br>") | safe }}
 </div>
@@ -95,7 +120,8 @@ var application_uuid = "{{application.uuid}}";
 --><label class="subitem-label no-head" for="refinement-promotion">Promotion of FAIR dataset (e.g. conference presentation)</label><br>
 </div>
 
-<label>Who will conduct the FAIR data refinement work and how long will the process take?</label>
+<label>Who will conduct the work and make your dataset FAIR and how long will the process take?</label><div class="fas fa-question-circle help-icon"><span class="help-text">Collaboration is encouraged. Please indicate who is responsible for the tasks described to make the dataset FAIR and indicate the time effort of each person. The project team may vary depending on the tasks or stage.</span></div>
+
 <div id="whodoesit" class="texteditor">
   {{application.whodoesit | default("", True) | replace("\\n", "<br>") | safe }}
 </div>
@@ -125,11 +151,25 @@ var application_uuid = "{{application.uuid}}";
   {{application.reusable | default("", True) | replace("\\n", "<br>") | safe }}
 </div>
 
+<label>Provide a summary of your application that can be published on the 4TU.ResearchData community website and social media channels (Maximum 50 words).</label>
+<div id="summary" class="texteditor">
+  {{application.summary | default("", True) | replace("\\n", "<br>") | safe }}
+</div>
+
+<label>If applicable, please describe how you will promote your FAIR dataset.</label><div class="fas fa-question-circle help-icon"><span class="help-text">For example conference presentation, cross-reference in publications, reuse, etc., and/or if support is requested.</span></div>
+<div id="promotion" class="texteditor">
+  {{application.promotion | default("", True) | replace("\\n", "<br>") | safe }}
+</div>
+
+
 <label>Budget estimation</label><div class="fas fa-question-circle help-icon"><span class="help-text">To receive the budget,
     you need to provide us with the IBAN and identification code (OFI, BIC, or similar) of your department/faculty. We encourage you to gather that
     information as soon as possible as it might take a while before receiving them.</span></div>
 <div id="budget-upload-wrapper" class="options-wrapper">
   <p>Please fill in the <a href="#">this budget template spreadsheet</a> and upload it below.</p>
+  <p class="highlight">To receive the budget, you need to provide us with the IBAN and identification code (OFI, BIC, or similar) of your department/faculty.
+We encourage you to gather that information as soon as possible as it might take a while before receiving them.</p>
+
   <div id="budget_upload_field" class="upload-wrapper record-type-field">
     <form id="budget-dropzone" class="upload-container dropzone" action="/application-form/{{application.uuid}}/upload-budget" method="post">
       <div class="fallback">
@@ -139,10 +179,6 @@ var application_uuid = "{{application.uuid}}";
   </div>
 </div>
 
-<label>Please provide a short summary about your application that can be published on the 4TU.ResearchData community platform, website and social media channels</label>
-<div id="summary" class="texteditor">
-  {{application.summary | default("", True) | replace("\\n", "<br>") | safe }}
-</div>
 
 <div style="text-align: center">
   <ul class="action-buttons">

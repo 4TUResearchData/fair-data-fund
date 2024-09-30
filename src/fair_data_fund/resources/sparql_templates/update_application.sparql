@@ -20,6 +20,8 @@ DELETE {
     ?application   fdf:interoperable   ?interoperable .
     ?application   fdf:reusable        ?reusable .
     ?application   fdf:summary         ?summary .
+    ?application   fdf:promotion       ?promotion .
+    ?application   fdf:linked_publication ?linked_publication .
     ?application   fdf:data_timing     ?data_timing .
     ?application   fdf:refinement      ?refinement .
     ?application   fdf:modified_date   ?modified_date .
@@ -64,6 +66,10 @@ INSERT {
     ?application   fdf:reusable        {{reusable | safe }} .
     {%- endif %}{% if summary is not none: %}
     ?application   fdf:summary         {{summary | safe }} .
+    {%- endif %}{% if promotion is not none: %}
+    ?application   fdf:promotion       {{promotion | safe }} .
+    {%- endif %}{% if linked_publication is not none: %}
+    ?application   fdf:linked_publication {{linked_publication | safe }} .
     {%- endif %}{% if data_timing is not none: %}
     ?application   fdf:data_timing     {{data_timing | safe }} .
     {%- endif %}{% if refinement is not none: %}
@@ -95,6 +101,8 @@ WHERE {
     OPTIONAL { ?application   fdf:interoperable   ?interoperable . }
     OPTIONAL { ?application   fdf:reusable        ?reusable . }
     OPTIONAL { ?application   fdf:summary         ?summary . }
+    OPTIONAL { ?application   fdf:promotion       ?promotion . }
+    OPTIONAL { ?application   fdf:linked_publication ?linked_publication . }
     OPTIONAL { ?application   fdf:data_timing     ?data_timing . }
     OPTIONAL { ?application   fdf:refinement      ?refinement . }
     OPTIONAL { ?application   fdf:modified_date   ?modified_date . }

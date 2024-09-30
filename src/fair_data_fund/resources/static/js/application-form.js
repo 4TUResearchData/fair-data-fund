@@ -81,6 +81,8 @@ function gather_form_data (application_uuid) {
         "interoperable": or_null(jQuery("#interoperable .ql-editor").html()),
         "reusable":      or_null(jQuery("#reusable .ql-editor").html()),
         "summary":       or_null(jQuery("#summary .ql-editor").html()),
+        "promotion":     or_null(jQuery("#promotion .ql-editor").html()),
+        "linked_publication": radio_button_value ("linked-publication"),
         "data_timing":   radio_button_value ("data-timing"),
         "refinement":    radio_button_value ("refinement-needed")
     }
@@ -141,6 +143,7 @@ jQuery(document).ready(function (){
     new Quill('#interoperable', { theme: '4tu' });
     new Quill('#reusable', { theme: '4tu' });
     new Quill('#summary', { theme: '4tu' });
+    new Quill('#promotion', { theme: '4tu' });
     new Quill('#fair_summary', { theme: '4tu' });
     //new Quill('.texteditor', { theme: '4tu' });
 
