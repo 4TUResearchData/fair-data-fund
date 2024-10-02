@@ -447,10 +447,6 @@ class WebUserInterfaceServer:
                     chunk = input_stream.read (content_to_read)
                     file_size += output_stream.write (chunk)
                     content_to_read = 0
-
-                # Make the file read-only from here on.
-                if os.name != 'nt':
-                    os.fchmod (destination_fd, 0o400)
         except BadRequest:
             is_incomplete = 1
             self.log.error ("Unexpected end of transfer for %s.", output_filename)
@@ -473,6 +469,8 @@ class WebUserInterfaceServer:
                 self.log.error ("Expected different end after file contents: '%s' != '%s'.",
                                 ending, expected_end)
 
+        self.db.update_application_budget_upload (application_uuid = uuid,
+                                                  budget_filename  = filename)
         return self.respond_201 ()
 
     def __handle_application_form (self, request, uuid, submit=False):

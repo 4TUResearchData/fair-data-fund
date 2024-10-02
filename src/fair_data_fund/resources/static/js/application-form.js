@@ -36,17 +36,23 @@ function perform_upload (files, current_file, dataset_uuid) {
             }, false);
             return xhr;
         },
-        url:         `/v3/datasets/${dataset_uuid}/upload`,
+        url:         `/application-form/${dataset_uuid}/upload-budget`,
         type:        "POST",
         data:        data,
         processData: false,
         contentType: false
     }).done(function () {
+        console.log("We are here.");
         jQuery("#file-upload h4").text("Drag files here");
         if (current_file < total_files) {
             return perform_upload (files, current_file + 1, dataset_uuid);
         } else {
-            render_files_for_dataset (dataset_uuid, null);
+            if (fileUploader !== null) {
+                fileUploader.removeAllFiles();
+                jQuery(".upload-container")
+                    .removeClass("upload-container")
+                    .addClass("upload-container-done");
+            }
         }
     }).fail(function () {
         show_message ("failure", "<p>Uploading file(s) failed.</p>");
@@ -170,6 +176,15 @@ function submit (application_uuid, event, notify=true, on_success=jQuery.noop) {
     });
 }
 
+function mark_budget_uploader_as_done () {
+    jQuery(".upload-container")
+        .removeClass("upload-container")
+        .addClass("upload-container-done");
+    jQuery(".dz-button").html("Budget template has been uploaded");
+    jQuery("#green-field-message").remove();
+    jQuery("#budget_upload_field").after('<p id="green-field-message" style="text-align: center;">Drop files in the green field above to overwrite previous upload.</p>');
+}
+
 jQuery(document).ready(function (){
     new Quill('#description', { theme: '4tu' });
     new Quill('#whodoesit', { theme: '4tu' });
@@ -181,7 +196,6 @@ jQuery(document).ready(function (){
     new Quill('#summary', { theme: '4tu' });
     new Quill('#promotion', { theme: '4tu' });
     new Quill('#fair_summary', { theme: '4tu' });
-    //new Quill('.texteditor', { theme: '4tu' });
 
     var budgetUploader = new Dropzone("#budget-dropzone", {
         url:               `/application-form/${application_uuid}/upload-budget`,
@@ -192,19 +206,17 @@ jQuery(document).ready(function (){
         autoProcessQueue:  false,
         autoQueue:         true,
         ignoreHiddenFiles: false,
-        disablePreviews:   false,
+        disablePreviews:   true,
         init: function() {
             $(window).on('beforeunload', function() {
                 if (budgetUploader.getUploadingFiles().length > 0 ||
                     budgetUploader.getQueuedFiles().length > 0) {
-                    // Custom message cannot be used in most browsers
-                    // since it was used for scam. Therefore, pop-up message
-                    // depends on user's browser.
                     return 1;
                 }
             });
         },
         accept: function(file, done) {
+            save_draft (application_uuid, null, notify=false);
             done();
             budgetUploader.processQueue();
         },
@@ -217,11 +229,11 @@ jQuery(document).ready(function (){
                         show_message ("failure", `<p>Failed to upload '${rejected.upload.filename}'.</p>`);
                     }
                 }
-                render_files_for_dataset (dataset_uuid, budgetUploader);
             } else {
                 budgetUploader.processQueue();
             }
             budgetUploader.removeFile(file);
+            mark_budget_uploader_as_done();
         },
         error: function(file, message) {
             show_message ("failure",
@@ -232,4 +244,8 @@ jQuery(document).ready(function (){
 
     jQuery("#save").on("click", function (event)   { save_draft (application_uuid, event); });
     jQuery("#submit").on("click", function (event) { submit (application_uuid, event); });
+
+    if (budget_filename != "") {
+        mark_budget_uploader_as_done();
+    }
 });

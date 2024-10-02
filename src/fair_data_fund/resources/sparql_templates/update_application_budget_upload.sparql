@@ -1,0 +1,27 @@
+{% extends "prefixes.sparql" %}
+{% block query %}
+DELETE {
+  GRAPH <{{state_graph}}> {
+    ?application   fdf:budget_filename ?budget_filename .
+    ?application   fdf:modified_date   ?modified_date .
+  }
+}
+INSERT {
+  GRAPH <{{state_graph}}> {
+    {%- if budget_filename is not none: %}
+    ?application   fdf:budget_filename {{budget_filename | safe }} .
+    {%- endif %}
+    ?application   fdf:modified_date   "{{modified_date}}"^^xsd:integer .
+  }
+}
+WHERE {
+  GRAPH <{{state_graph}}> {
+    ?application rdf:type fdf:Application .
+    OPTIONAL { ?application   fdf:budget_filename ?budget_filename . }
+    OPTIONAL { ?application   fdf:modified_date   ?modified_date . }
+
+    FILTER NOT EXISTS { ?application fdf:submit_date ?submit_date . }
+    FILTER (?application = <application:{{uuid}}>)
+  }
+}
+{% endblock %}

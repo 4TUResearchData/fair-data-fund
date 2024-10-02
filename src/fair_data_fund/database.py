@@ -304,7 +304,6 @@ class SparqlInterface:
             "uuid": application_uuid,
             "is_submitted": is_submitted
         })
-        self.__log_query (query)
         return self.__run_query (query)
 
     def create_application (self):
@@ -323,6 +322,19 @@ class SparqlInterface:
 
         return rdf.uri_to_uuid (uri)
 
+    def update_application_budget_upload (self, application_uuid, budget_filename=None):
+        """
+        Returns True when the budget filename for application identified by
+        APPLICATION_UUID has been updated, False otherwise.
+        """
+        current_epoch = int(datetime.now().timestamp())
+        query = self.__query_from_template ("update_application_budget_upload", {
+            "uuid"            : application_uuid,
+            "budget_filename" : rdf.escape_string_value (budget_filename),
+            "modified_date"   : current_epoch
+        })
+        return self.__run_query (query)
+
     def update_application (self, application_uuid, name=None, pronouns=None,
                             institution=None, faculty=None, department=None,
                             position=None, discipline=None, datatype=None,
@@ -333,10 +345,10 @@ class SparqlInterface:
                             promotion=None, linked_publication=None,
                             submitted=False, interview_consent=None,
                             checkpoints_consent=None, financial_consent=None,
-                            organization_consent=None):
+                            organization_consent=None, budget_filename=None):
         """
-        Returns True when the application identified by UUID has been updated,
-        False otherwise.
+        Returns True when the application identified by APPLICATION_UUID has
+        been updated, False otherwise.
         """
         current_epoch = int(datetime.now().timestamp())
         query = self.__query_from_template ("update_application", {
@@ -367,6 +379,7 @@ class SparqlInterface:
             "checkpoints_consent" : rdf.escape_boolean_value (checkpoints_consent),
             "financial_consent" : rdf.escape_boolean_value (financial_consent),
             "organization_consent" : rdf.escape_boolean_value (organization_consent),
+            "budget_filename": rdf.escape_string_value (budget_filename),
             "submitted"     : submitted,
             "modified_date" : current_epoch
         })

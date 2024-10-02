@@ -6,6 +6,7 @@ SELECT DISTINCT ?uuid ?name ?pronouns ?institution ?faculty ?department
                 ?reusable ?summary ?data_timing ?refinement ?submit_date
                 ?modified_date ?linked_publication ?interview_consent ?promotion
                 ?checkpoints_consent ?financial_consent ?organization_consent
+                ?budget_filename
 WHERE {
   GRAPH <{{state_graph}}> {
     ?application rdf:type fdf:Application .
@@ -37,6 +38,7 @@ WHERE {
     OPTIONAL { ?application   fdf:organization_consent ?organization_consent . }
     OPTIONAL { ?application   fdf:modified_date   ?modified_date . }
     OPTIONAL { ?application   fdf:submit_date     ?submit_date . }
+    OPTIONAL { ?application   fdf:budget_filename ?budget_filename . }
 
     BIND(STRAFTER(STR(?application), "application:") AS ?uuid)
     {%- if uuid is not none %}
