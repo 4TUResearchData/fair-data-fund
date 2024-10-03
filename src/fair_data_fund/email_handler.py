@@ -33,6 +33,7 @@ class EmailInterface:
         message = MIMEMultipart ("alternative")
         message["From"] = self.from_address
         message["To"] = recipient
+        message["Cc"] = "FAIRdatafund@4tu.nl"
         if self.subject_prefix:
             message["Subject"] = f"{self.subject_prefix} {subject}"
         else:
@@ -72,7 +73,7 @@ class EmailInterface:
                 return False
 
         try:
-            connection.sendmail (self.from_address, recipient, message.as_string())
+            connection.sendmail (self.from_address, [recipient, "fairdatafund@4tu.nl"], message.as_string())
         except (smtplib.SMTPRecipientsRefused, smtplib.SMTPHeloError, smtplib.SMTPSenderRefused,
                 smtplib.SMTPDataError, smtplib.SMTPNotSupportedError,
                 smtplib.SMTPServerDisconnected) as error:
