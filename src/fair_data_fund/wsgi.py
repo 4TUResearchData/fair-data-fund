@@ -12,6 +12,7 @@ from jinja2 import Environment, FileSystemLoader
 from jinja2.exceptions import TemplateNotFound
 from fair_data_fund import database
 from fair_data_fund import validator
+from fair_data_fund import email_handler
 from fair_data_fund.convenience import value_or_none, value_or
 
 def R (uri_path, endpoint):  # pylint: disable=invalid-name
@@ -40,6 +41,7 @@ class WebUserInterfaceServer:
         self.base_url         = f"http://{address}:{port}"
         self.cookie_key       = "ssi_session"
         self.db               = database.SparqlInterface()  # pylint: disable=invalid-name
+        self.email            = email_handler.EmailInterface()
         self.repositories     = {}
         self.identity_provider = None
 
@@ -508,6 +510,7 @@ class WebUserInterfaceServer:
             "application_uuid": uuid,
             "name":          validator.string_value (record, "name",          1, 255,   submit, error_list=errors),
             "pronouns":      validator.string_value (record, "pronouns",      0, 255,   error_list=errors),
+            "email":         validator.string_value (record, "email",         0, 512,   submit, error_list=errors),
             "institution":   validator.uuid_value   (record, "institution",   submit,   error_list=errors),
             "faculty":       validator.string_value (record, "faculty",       0, 255,   submit, error_list=errors),
             "department":    validator.string_value (record, "department",    0, 255,   submit, error_list=errors),
@@ -576,7 +579,7 @@ class WebUserInterfaceServer:
             handler = self.__handle_application_form (request, uuid)
             if isinstance (handler, Response):
                 return Response
-            elif handler:
+            if handler:
                 return self.respond_204 ()
             return self.error_500 ()
 
@@ -594,11 +597,22 @@ class WebUserInterfaceServer:
             try:
                 application  = self.db.applications (application_uuid = uuid,
                                                      is_submitted     = True)[0]
-                institutions = self.db.institutions ()            
+                institutions = self.db.institutions ()
+                parameters = {
+                    "application": application,
+                    "institutions": institutions
+                }
+
+                if self.email.is_properly_configured ():
+                    email_template = self.jinja.get_template ("application-form-submitted.html")
+                    html = email_template.render(**parameters)
+                    subject = "We received your application for the 4TU.ResearchData FAIR Data Found."
+                    if not self.email.send_email (application["email"], subject, None, html):
+                        self.log.error ("Failed to send confirmation e-mail to %s.", application["email"])
+
                 return self.__render_template (request,
                                                "application-form-submitted.html",
-                                               application  = application,
-                                               institutions = institutions)
+                                               **parameters)
             except (TypeError, IndexError):
                 return self.error_404 (request)
 
@@ -606,7 +620,7 @@ class WebUserInterfaceServer:
             handler = self.__handle_application_form (request, uuid, submit=True)
             if isinstance (handler, Response):
                 return handler
-            elif handler:
+            if handler:
                 if self.accepts_html (request):
                     return redirect (f"/application-form/{uuid}/submit", code=302)
                 return self.response (json.dumps({
@@ -615,4 +629,3 @@ class WebUserInterfaceServer:
             return self.error_500 ()
 
         return self.error_405 (["GET", "PUT"])
-

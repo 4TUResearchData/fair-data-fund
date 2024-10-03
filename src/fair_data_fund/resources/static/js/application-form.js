@@ -77,6 +77,7 @@ function gather_form_data (application_uuid) {
         "uuid":          application_uuid,
         "name":          or_null(jQuery("#name").val()),
         "pronouns":      or_null(jQuery("#pronouns").val()),
+        "email":         or_null(jQuery("#email").val()),
         "institution":   or_null(jQuery("#institution").val()),
         "faculty":       or_null(jQuery("#faculty").val()),
         "department":    or_null(jQuery("#department").val()),

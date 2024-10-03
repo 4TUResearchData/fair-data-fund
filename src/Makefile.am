@@ -6,6 +6,7 @@ PYTHON_FILES =                                                          \
     fair_data_fund/cache.py                                             \
     fair_data_fund/convenience.py                                       \
     fair_data_fund/database.py                                          \
+    fair_data_fund/email_handler.py                                     \
     fair_data_fund/formatter.py                                         \
     fair_data_fund/rdf.py                                               \
     fair_data_fund/wsgi.py

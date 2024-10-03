@@ -2,12 +2,13 @@
 {% block body %}
 <h1>FAIR Data Fund Application Submission</h1>
 
+<p>Thank you for submitting an application for the 4TU.ResearchData FAIR Data Fund.</p>
 <p>Your application was submitted on <strong>{{application.submit_date}}</strong>.</p>
 
 <table>
   <tr><td><strong>Your name</strong></td><td>{{application.name}}</td></tr>
   <tr><td><strong>Pronouns</strong></td><td>{{application.pronouns}}</td></tr>
-  <tr><td><strong>Institution</strong></td><td>
+  <tr><td><strong>Your institution</strong></td><td>
         {%- for institution in institutions: %}
           {%- if institution.uuid == application.institution: %}
             {{institution.name}}
@@ -15,19 +16,20 @@
         {%- endfor %}
   </td></tr>
   <tr><td><strong>Your faculty or group</strong></td><td>{{application.faculty}}</td></tr>
-  <tr><td><strong>Your Department</strong></td><td>{{application.department}}</td></tr>
+  <tr><td><strong>Your department</strong></td><td>{{application.department}}</td></tr>
   <tr><td><strong>Your position</strong></td><td>{{application.position}}</td></tr>
   <tr><td><strong>Your research discipline</strong></td><td>{{application.discipline}}</td></tr>
-  <tr><td><strong>Type of data</strong></td><td>{{application.datatype}}</td></tr>
-  <tr><td><strong>Dataset size (in gigabytes)</strong></td><td>{{application.size}}</td></tr>
-  <tr><td colspan="2"><strong>Briefly describe the content of the dataset and file formats</strong></td></tr>
+  <tr><td><strong>Data types handled in the project</strong></td><td>{{application.datatype}}</td></tr>
+  <tr><td><strong>What is the volume (in gigabytes) of the total dataset?</strong></td><td>{{application.size}}</td></tr>
+  <tr><td colspan="2"><strong>Briefly describe the content of the data and file formats before obtaining funding</strong></td></tr>
   <tr><td colspan="2">{{application.description | default("", True) | replace("\\n", "<br>") | safe }}</td></tr>
-  <tr><td><strong>When was the data originally created?</strong></td><td>
+  <tr><td><strong>When was the data created?</strong></td><td>
       {%- if application.data_timing == "decades-ago": %}Decades ago{% endif %}
       {%- if application.data_timing == "years-ago": %}A few years ago{% endif %}
       {%- if application.data_timing == "recent": %}Recently completed research{% endif %}
       {%- if application.data_timing == "ongoing": %}In ongoing research{% endif %}
   </td></tr>
+  <tr><td><strong>Are or will the data be linked to a publication?</strong></td><td>{{application.linked_publication}}</td></tr>
   <tr><td colspan="2"><strong>Summarise how you will make your dataset FAIR beyond publishing it in the 4TU.ResearchData repository.</strong></td></tr>
   <tr><td colspan="2">{{application.fair_summary | default("", True) | replace("\\n", "<br>") | safe }}</td></tr>
   <tr><td><strong>FAIR data refinement needed</strong></td><td>
@@ -40,7 +42,7 @@
       {%- if application.refinement == "visualisation": %}Visualisation to make data FAIR{% endif %}
       {%- if application.refinement == "promotion": %}Promotion of FAIR dataset (e.g. conference presentation){% endif %}
   </td></tr>
-  <tr><td colspan="2"><strong>Who will conduct the FAIR data refinement work and how long will the process take?</strong></td></tr>
+  <tr><td colspan="2"><strong>Who will conduct the work and make your dataset FAIR and how long will the process take?</strong></td></tr>
   <tr><td colspan="2">{{application.whodoesit | default("", True) | replace("\\n", "<br>") | safe }}</td></tr>
   <tr><td colspan="2"><strong>Summarise what you plan to achieve by refining and publishing the dataset.</strong></td></tr>
   <tr><td colspan="2">{{application.achievement | default("", True) | replace("\\n", "<br>") | safe }}</td></tr>
@@ -52,7 +54,19 @@
   <tr><td colspan="2">{{application.interoperable | default("", True) | replace("\\n", "<br>") | safe }}</td></tr>
   <tr><td colspan="2"><strong>Explain how refining and publishing the dataset will make it 'Reusable' (Maximum 100 words)</strong></td></tr>
   <tr><td colspan="2">{{application.reusable | default("", True) | replace("\\n", "<br>") | safe }}</td></tr>
-  <tr><td colspan="2"><strong>Please provide a short summary about your application that can be published on the 4TU.ResearchData community platform, website and social media channels</strong></td></tr>
+  <tr><td colspan="2"><strong>Provide a summary of your application that can be published on the 4TU.ResearchData community website and social media channels (Maximum 50 words).</strong></td></tr>
   <tr><td colspan="2">{{application.summary | default("", True) | replace("\\n", "<br>") | safe }}</td></tr>
+  <tr><td colspan="2"><strong>If applicable, please describe how you will promote your FAIR dataset.</strong></td></tr>
+  <tr><td colspan="2">{{application.promotion | default("", True) | replace("\\n", "<br>") | safe }}</td></tr>
+  <tr><td colspan="2"><strong>Consents and agreements</strong></td></tr>
+  {% if application.interview_consent %}
+  <tr><td colspan="2"><ul><li>You consent to participate in an interview with a staff member at 4TU.ResearchData to have the application and research data showcased on the 4TU.ResearchData community website and social media channels.</li></ul></td></tr>
+  {% endif %}{% if application.checkpoints_consent %}
+  <tr><td colspan="2"><ul><li>You consent to attend three checkpoints with a staff member at 4TU.ResearchData as part of the support offered by the 4TU.ResearchData team.</li></ul></td></tr>
+  {% endif %}{% if application.financial_consent %}
+  <tr><td colspan="2"><ul><li>You will gather the following information from your institute before February 1, 2025: IBAN and OFI number.</li></ul></td></tr>
+  {% endif %}{% if application.organization_consent %}
+  <tr><td colspan="2"><ul><li>You understand that your organization will receive the requested budget, these funds will be used solely for the tasks described in the budget estimation.</li></ul></td></tr>
+  {% endif %}
 </table>
 {% endblock %}

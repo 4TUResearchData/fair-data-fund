@@ -3,7 +3,7 @@
 SELECT DISTINCT ?uuid ?name ?pronouns ?institution ?faculty ?department
                 ?position ?discipline ?datatype ?description ?size ?whodoesit
                 ?achievement ?fair_summary ?findable ?accessible ?interoperable
-                ?reusable ?summary ?data_timing ?refinement ?submit_date
+                ?reusable ?summary ?data_timing ?refinement ?submit_date ?email
                 ?modified_date ?linked_publication ?interview_consent ?promotion
                 ?checkpoints_consent ?financial_consent ?organization_consent
                 ?budget_filename
@@ -12,6 +12,7 @@ WHERE {
     ?application rdf:type fdf:Application .
     OPTIONAL { ?application   fdf:name            ?name . }
     OPTIONAL { ?application   fdf:pronouns        ?pronouns . }
+    OPTIONAL { ?application   fdf:email           ?email . }
     OPTIONAL { ?application   fdf:institution     ?institution . }
     OPTIONAL { ?application   fdf:faculty         ?faculty . }
     OPTIONAL { ?application   fdf:department      ?department . }

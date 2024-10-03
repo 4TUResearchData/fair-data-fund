@@ -118,6 +118,22 @@ def read_automatic_login_configuration (server, xml_root):
         server.identity_provider = "automatic-login"
         server.automatic_login_email = automatic_login_email
 
+def read_email_configuration (server, xml_root, logger):
+    """Procedure to parse and set the email server configuration."""
+    email = xml_root.find("email")
+    if email:
+        try:
+            server.email.smtp_port = int(config_value (email, "port"))
+            server.email.smtp_server = config_value (email, "server")
+            server.email.from_address = config_value (email, "from")
+            server.email.smtp_username = config_value (email, "username")
+            server.email.smtp_password = config_value (email, "password")
+            server.email.subject_prefix = config_value (email, "subject-prefix", None, None)
+            server.email.do_starttls = bool(int(config_value (email, "starttls", None, 0)))
+        except ValueError:
+            logger.error ("Could not configure the email subsystem:")
+            logger.error ("The email port should be a numeric value.")
+
 def read_configuration_file (config, server, config_file, logger, config_files):
     """Procedure to parse a configuration file."""
 
@@ -195,6 +211,7 @@ def read_configuration_file (config, server, config_file, logger, config_files):
             server.db.update_endpoint = update_endpoint
 
         read_automatic_login_configuration (server, xml_root)
+        read_email_configuration (server, xml_root, logger)
 
         for include_element in xml_root.iter('include'):
             include = include_element.text

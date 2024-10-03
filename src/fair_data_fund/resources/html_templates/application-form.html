@@ -24,6 +24,9 @@ var budget_filename = "{{application.budget_filename}}";
 <label for="name">Pronouns</label>
 <input type="text" id="pronouns" name="pronouns" value="{{application.pronouns}}" />
 
+<label for="email">Your e-mail address</label><div class="fas fa-question-circle help-icon"><span class="help-text">We use your e-mail address to send a confirmation e-mail and for following up on your application.</span></div><span class="required-field">&#8727;</span>
+<input type="text" id="email" name="email" value="{{application.email}}" />
+
 <label for="institution">Your institution</label>&nbsp;<span class="required-field">&#8727;</span>
 <select id="institution">
   <option value="" disabled{% if not application.institution %} selected{% endif %}>Select institution</option>

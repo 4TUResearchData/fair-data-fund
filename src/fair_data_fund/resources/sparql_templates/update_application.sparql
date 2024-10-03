@@ -4,6 +4,7 @@ DELETE {
   GRAPH <{{state_graph}}> {
     ?application   fdf:name            ?name .
     ?application   fdf:pronouns        ?pronouns .
+    ?application   fdf:email           ?email .
     ?application   fdf:institution     ?institution .
     ?application   fdf:faculty         ?faculty .
     ?application   fdf:department      ?department .
@@ -37,6 +38,8 @@ INSERT {
     ?application   fdf:name            {{name | safe }} .
     {%- endif %}{% if pronouns is not none: %}
     ?application   fdf:pronouns        {{pronouns | safe }} .
+    {%- endif %}{% if email is not none: %}
+    ?application   fdf:email           {{email | safe }} .
     {%- endif %}{% if institution is not none: %}
     ?application   fdf:institution     {{institution | safe }} .
     {%- endif %}{% if faculty is not none: %}
@@ -96,6 +99,7 @@ WHERE {
     ?application rdf:type fdf:Application .
     OPTIONAL { ?application   fdf:name            ?name . }
     OPTIONAL { ?application   fdf:pronouns        ?pronouns . }
+    OPTIONAL { ?application   fdf:email           ?email . }
     OPTIONAL { ?application   fdf:institution     ?institution . }
     OPTIONAL { ?application   fdf:faculty         ?faculty . }
     OPTIONAL { ?application   fdf:department      ?department . }

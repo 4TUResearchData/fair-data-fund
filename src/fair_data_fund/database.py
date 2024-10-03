@@ -342,7 +342,7 @@ class SparqlInterface:
                             achievement=None, fair_summary=None, findable=None,
                             accessible=None, interoperable=None, reusable=None,
                             summary=None, data_timing=None, refinement=None,
-                            promotion=None, linked_publication=None,
+                            promotion=None, linked_publication=None, email=None,
                             submitted=False, interview_consent=None,
                             checkpoints_consent=None, financial_consent=None,
                             organization_consent=None, budget_filename=None):
@@ -355,6 +355,7 @@ class SparqlInterface:
             "uuid"          : application_uuid,
             "name"          : rdf.escape_string_value (name),
             "pronouns"      : rdf.escape_string_value (pronouns),
+            "email"         : rdf.escape_string_value (email),
             "institution"   : rdf.escape_string_value (institution),
             "faculty"       : rdf.escape_string_value (faculty),
             "department"    : rdf.escape_string_value (department),
