@@ -14,7 +14,13 @@
   4TU.ResearchData believes in the added value and benefit of making research
   data and software FAIR.</p>
 
+{%- if submissions_open %}
 <div style="text-align: center">
   <p class="a-button"><a href="/application-form">Apply here</a></p>
 </div>
+{%- else %}
+<div style="background: #ffeeaa; padding: .025em .5em .025em .5em;">
+  <p>The submissions for 2024 have been closed.</p>
+</div>
+{%- endif %}
 {% endblock %}

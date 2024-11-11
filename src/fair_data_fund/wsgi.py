@@ -47,7 +47,7 @@ class WebUserInterfaceServer:
 
         self.automatic_login_email = None
         self.in_production    = False
-
+        self.submissions_open = True
         resources_path        = os.path.dirname(__file__)
         self.jinja            = Environment(loader = FileSystemLoader([
             os.path.join(resources_path, "resources", "html_templates"),
@@ -341,7 +341,8 @@ class WebUserInterfaceServer:
 
     def ui_home (self, request):  # pylint: disable=unused-argument
         """Implements /."""
-        return self.__render_template (request, "home.html")
+        return self.__render_template (request, "home.html",
+                                       submissions_open = self.submissions_open)
 
     def ui_maintenance (self, request):
         """Implements a maintenance page."""
@@ -549,6 +550,9 @@ class WebUserInterfaceServer:
     def ui_application_form (self, request, uuid=None):
         """Implements /application-form."""
 
+        if not self.submissions_open:
+            return self.error_403 (request)
+
         if request.method in ("GET", "HEAD"):
             if not self.accepts_html (request):
                 return self.error_406 ("text/html")
@@ -587,6 +591,9 @@ class WebUserInterfaceServer:
 
     def ui_submit_application_form (self, request, uuid=None):
         """Implements /application-form/<uuid>/submit."""
+
+        if not self.submissions_open:
+            return self.error_403 (request)
 
         if request.method in ("GET", "HEAD"):
             if uuid is None or not validator.is_valid_uuid (uuid):

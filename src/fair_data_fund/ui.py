@@ -193,6 +193,9 @@ def read_configuration_file (config, server, config_file, logger, config_files):
         server.allow_crawlers = read_boolean_value (xml_root, "allow-crawlers",
                                                     server.allow_crawlers, logger)
 
+        server.submissions_open = read_boolean_value (xml_root, "submissions-open",
+                                                      server.submissions_open, logger)
+
         base_url_fallback = f"http://{config['address']}:{config['port']}"
         if server.base_url:
             base_url_fallback = server.base_url
