@@ -1,0 +1,30 @@
+{% extends "prefixes.sparql" %}
+{% block query %}
+SELECT DISTINCT ?created_date ?email ?first_name ?uuid ?last_name
+                ?modified_date ?domain
+WHERE {
+  GRAPH <{{state_graph}}> {
+    ?account             rdf:type                   fdf:Account .
+    OPTIONAL { ?account  fdf:created_date          ?created_date . }
+    OPTIONAL { ?account  fdf:email                 ?email . }
+    OPTIONAL { ?account  fdf:first_name            ?first_name . }
+    OPTIONAL { ?account  fdf:last_name             ?last_name . }
+    OPTIONAL { ?account  fdf:modified_date         ?modified_date . }
+    OPTIONAL { ?account  fdf:domain                ?domain . }
+  }
+  BIND(STRAFTER(STR(?account), "account:") AS ?uuid)
+
+  {%- if account_uuid is not none %}
+  FILTER (?account = <account:{{account_uuid}}>)
+  {%- endif %}{% if email is not none %}
+  FILTER (LCASE(STR(?email)) = LCASE(STR({{email | safe}})))
+  {%- endif %}
+  {% if filters is not none %}{{filters | safe}}{% endif %}
+
+  {%- if search_for is not none %}
+  FILTER (CONTAINS (UCASE (STR (?email)),      UCASE ({{search_for | safe}})) ||
+          CONTAINS (UCASE (STR (?first_name)), UCASE ({{search_for | safe}})) ||
+          CONTAINS (UCASE (STR (?last_name)),  UCASE ({{search_for | safe}})))
+  {%- endif %}
+}
+{% endblock %}

@@ -15,6 +15,14 @@ from fair_data_fund import validator
 from fair_data_fund import email_handler
 from fair_data_fund.convenience import value_or_none, value_or
 
+## Error handling for loading python3-saml is done in 'ui'.
+## So if it fails here, we can safely assume we don't need it.
+try:
+    from onelogin.saml2.auth import OneLogin_Saml2_Auth
+    from onelogin.saml2.errors import OneLogin_Saml2_Error
+except (ImportError, ModuleNotFoundError):
+    pass
+
 def R (uri_path, endpoint):  # pylint: disable=invalid-name
     """
     Short-hand for defining a route between a URI and its
@@ -30,11 +38,15 @@ class WebUserInterfaceServer:
 
         self.url_map          = Map([
             R("/",                                      self.ui_home),
+            R("/login",                                 self.ui_login),
+            R("/logout",                                self.ui_logout),
             R("/application-form",                      self.ui_application_form),
             R("/application-form/<uuid>",               self.ui_application_form),
             R("/application-form/<uuid>/upload-budget", self.ui_upload_budget),
             R("/application-form/<uuid>/submit",        self.ui_submit_application_form),
             R("/robots.txt",                            self.robots_txt),
+            R("/saml/metadata",                         self.saml_metadata),
+            R("/saml/login",                            self.ui_login),
         ])
         self.allow_crawlers   = False
         self.maintenance_mode = False
@@ -44,6 +56,15 @@ class WebUserInterfaceServer:
         self.email            = email_handler.EmailInterface()
         self.repositories     = {}
         self.identity_provider = None
+
+        self.saml_config_path    = None
+        self.saml_config         = None
+        self.saml_attribute_email = "urn:mace:dir:attribute-def:mail"
+        self.saml_attribute_first_name = "urn:mace:dir:attribute-def:givenName"
+        self.saml_attribute_last_name = "urn:mace:dir:attribute-def:sn"
+        self.saml_attribute_common_name = "urn:mace:dir:attribute-def:cn"
+        self.saml_attribute_groups = None
+        self.saml_attribute_group_prefix = None
 
         self.automatic_login_email = None
         self.in_production    = False
@@ -636,3 +657,183 @@ class WebUserInterfaceServer:
             return self.error_500 ()
 
         return self.error_405 (["GET", "PUT"])
+    def saml_metadata (self, request):
+        """Communicates the service provider metadata for SAML 2.0."""
+
+        if not (self.accepts_content_type (request, "application/samlmetadata+xml") or
+                self.accepts_xml (request)):
+            return self.error_406 ("text/xml")
+
+        if self.identity_provider != "saml":
+            return self.error_404 (request)
+
+        saml_auth   = self.__saml_auth (request)
+        settings    = saml_auth.get_settings ()
+        metadata    = settings.get_sp_metadata ()
+        errors      = settings.validate_metadata (metadata)
+        if len(errors) == 0:
+            return self.response (metadata, mimetype="text/xml")
+
+        self.log.error ("SAML SP Metadata validation failed.")
+        self.log.error ("Errors: %s", ", ".join(errors))
+        return self.error_500 ()
+
+    def __request_to_saml_request (self, request):
+        """Turns a werkzeug request into one that python3-saml understands."""
+
+        return {
+            ## Always assume HTTPS.  A proxy server may mask it.
+            "https":       "on",
+            ## Override the internal HTTP host because a proxy server masks the
+            ## actual HTTP host used.  Fortunately, we pre-configure the
+            ## expected HTTP host in the form of the "base_url".  So we strip
+            ## off the protocol prefix.
+            "http_host":   self.base_url.split("://")[1],
+            "script_name": request.path,
+            "get_data":    request.args.copy(),
+            "post_data":   request.form.copy()
+        }
+
+    def __saml_auth (self, request):
+        """Returns an instance of OneLogin_Saml2_Auth."""
+        http_fields = self.__request_to_saml_request (request)
+        return OneLogin_Saml2_Auth (http_fields, custom_base_path=self.saml_config_path)
+
+    def authenticate_using_saml (self, request):
+        """Returns a record upon success, None otherwise."""
+
+        http_fields = self.__request_to_saml_request (request)
+        saml_auth   = OneLogin_Saml2_Auth (http_fields, custom_base_path=self.saml_config_path)
+        try:
+            saml_auth.process_response ()
+        except OneLogin_Saml2_Error as error:
+            if error.code == OneLogin_Saml2_Error.SAML_RESPONSE_NOT_FOUND:
+                self.log.error ("Missing SAMLResponse in POST data.")
+            else:
+                self.log.error ("SAML error %d occured.", error.code)
+            return None
+
+        errors = saml_auth.get_errors()
+        if errors:
+            self.log.error ("Errors in the SAML authentication:")
+            self.log.error ("%s", ", ".join(errors))
+            return None
+
+        if not saml_auth.is_authenticated():
+            self.log.error ("SAML authentication failed.")
+            return None
+
+        ## Gather SAML session information.
+        session = {}
+        session['samlNameId']                = saml_auth.get_nameid()
+        session['samlNameIdFormat']          = saml_auth.get_nameid_format()
+        session['samlNameIdNameQualifier']   = saml_auth.get_nameid_nq()
+        session['samlNameIdSPNameQualifier'] = saml_auth.get_nameid_spnq()
+        session['samlSessionIndex']          = saml_auth.get_session_index()
+
+        ## Gather attributes from user.
+        record               = {}
+        attributes           = saml_auth.get_attributes()
+        record["session"]    = session
+        try:
+            record["email"]      = attributes[self.saml_attribute_email][0]
+            record["first_name"] = attributes[self.saml_attribute_first_name][0]
+            record["last_name"]  = attributes[self.saml_attribute_last_name][0]
+        except (KeyError, IndexError):
+            self.log.error ("Didn't receive expected fields in SAMLResponse.")
+            self.log.error ("Received attributes: %s", attributes)
+
+        if not record["email"]:
+            self.log.error ("Didn't receive required fields in SAMLResponse.")
+            self.log.error ("Received attributes: %s", attributes)
+            return None
+
+        record["domain"] = record["email"].partition("@")[2]
+
+        return record
+
+    def ui_login (self, request):
+        """Implements /login."""
+
+        account_uuid = None
+        account      = None
+
+        ## Automatic log in for development purposes only.
+        ## --------------------------------------------------------------------
+        if self.automatic_login_email is not None and not self.in_production:
+            account = self.db.account_by_email (self.automatic_login_email)
+            if account is None:
+                return self.error_403 (request)
+            account_uuid = account["uuid"]
+            self.log.access ("Account %s logged in via auto-login.", account_uuid) #  pylint: disable=no-member
+
+        ## SAML 2.0 authentication
+        ## --------------------------------------------------------------------
+        elif self.identity_provider == "saml":
+
+            ## Initiate the login procedure.
+            if request.method == "GET":
+                saml_auth   = self.__saml_auth (request)
+                redirect_url = saml_auth.login()
+                response    = redirect (redirect_url)
+
+                return response
+
+            ## Retrieve signed data from SURFConext via the user.
+            if request.method == "POST":
+                if not self.accepts_html (request):
+                    return self.error_406 ("text/html")
+
+                saml_record = self.authenticate_using_saml (request)
+                if saml_record is None:
+                    return self.error_403 (request)
+
+                try:
+                    if "email" not in saml_record:
+                        return self.error_400 (request, "Invalid request", "MissingEmailProperty")
+
+                    account = self.db.account_by_email (saml_record["email"].lower())
+                    if account:
+                        account_uuid = account["uuid"]
+                        self.log.access ("Account %s logged in via SAML.", account_uuid) #  pylint: disable=no-member
+                    else:
+                        account_uuid = self.db.insert_account (
+                            email       = saml_record["email"],
+                            first_name  = value_or_none (saml_record, "first_name"),
+                            last_name   = value_or_none (saml_record, "last_name"),
+                            common_name = value_or_none (saml_record, "common_name"),
+                            domain      = value_or_none (saml_record, "domain")
+                        )
+                        if account_uuid is None:
+                            self.log.error ("Creating account for %s failed.", saml_record["email"])
+                            return self.error_500()
+                        self.log.access ("Account %s created via SAML.", account_uuid) #  pylint: disable=no-member
+                except TypeError:
+                    pass
+        else:
+            self.log.error ("Unknown identity provider '%s'", self.identity_provider)
+            return self.error_500()
+
+        if account_uuid is not None:
+            token, session_uuid = self.db.insert_session (account_uuid, name="Website login")
+            if session_uuid is None:
+                self.log.error ("Failed to create a session for account %s.", account_uuid)
+                return self.error_500 ()
+
+            self.log.access ("Created session %s for account %s.", session_uuid, account_uuid) #  pylint: disable=no-member
+
+            response = redirect ("/review/dashboard", code=302)
+            response.set_cookie (key=self.cookie_key, value=token, secure=self.in_production)
+            return response
+
+        return self.error_500 ()
+
+    def ui_logout (self, request):
+        """Implements /logout."""
+        if not self.accepts_html (request):
+            return self.error_406 ("text/html")
+
+        response = redirect ("/", code=302)
+        self.db.delete_session (self.token_from_cookie (request))
+        response.delete_cookie (key=self.cookie_key)
+        return response

@@ -1,5 +1,6 @@
 """This module provides the communication with the SPARQL endpoint."""
 
+import secrets
 import os
 import logging
 from datetime import datetime
@@ -385,3 +386,86 @@ class SparqlInterface:
             "modified_date" : current_epoch
         })
         return self.__run_query (query)
+
+    def insert_account (self, email=None, first_name=None, last_name=None, domain=None):
+        """Procedure to create an account."""
+
+        graph        = Graph()
+        account_uri  = rdf.unique_node ("account")
+
+        if domain is None and email is not None:
+            domain = email.partition("@")[2]
+
+        rdf.add (graph, account_uri, RDF.type,               rdf.DJHT["Account"], "uri")
+        rdf.add (graph, account_uri, rdf.DJHT["first_name"], first_name, XSD.string)
+        rdf.add (graph, account_uri, rdf.DJHT["last_name"],  last_name,  XSD.string)
+        rdf.add (graph, account_uri, rdf.DJHT["email"],      email,      XSD.string)
+        rdf.add (graph, account_uri, rdf.DJHT["domain"],     domain,     XSD.string)
+
+        if self.add_triples_from_graph (graph):
+            self.cache.invalidate_by_prefix ("accounts")
+            return rdf.uri_to_uuid (account_uri)
+
+        return None
+
+    def insert_session (self, account_uuid, name=None, token=None, editable=False):
+        """Procedure to add a session token for an account_uuid."""
+
+        if account_uuid is None:
+            return None, None
+
+        account = self.account_by_uuid (account_uuid)
+        if account is None:
+            return None, None
+
+        if token is None:
+            token = secrets.token_hex (64)
+
+        current_time = datetime.strftime (datetime.now(), "%Y-%m-%dT%H:%M:%SZ")
+
+        graph       = Graph()
+        link_uri    = rdf.unique_node ("session")
+        account_uri = URIRef(rdf.uuid_to_uri (account_uuid, "account"))
+
+        graph.add ((link_uri, RDF.type,               rdf.DJHT["Session"]))
+        graph.add ((link_uri, rdf.DJHT["account"],    account_uri))
+        graph.add ((link_uri, rdf.DJHT["created_date"], Literal(current_time, datatype=XSD.dateTime)))
+        graph.add ((link_uri, rdf.DJHT["name"],       Literal(name, datatype=XSD.string)))
+        graph.add ((link_uri, rdf.DJHT["token"],      Literal(token, datatype=XSD.string)))
+        graph.add ((link_uri, rdf.DJHT["editable"],   Literal(editable, datatype=XSD.boolean)))
+
+        if self.add_triples_from_graph (graph):
+            return token, rdf.uri_to_uuid (link_uri)
+
+        return None, None
+
+    def account_by_session_token (self, session_token):
+        """Returns an account record or None."""
+
+        if session_token is None:
+            return None
+
+        query = self.__query_from_template ("account_by_session_token", {
+            "token":       rdf.escape_string_value (session_token),
+        })
+
+        return self.__run_query (query)
+
+    def accounts (self, account_uuid=None, order=None, order_direction=None,
+                  limit=None, offset=None, email=None, search_for=None):
+        """Returns accounts."""
+
+        query = self.__query_from_template ("accounts", {
+            "account_uuid": account_uuid,
+            "email": rdf.escape_string_value(email),
+            "search_for": rdf.escape_string_value (search_for),
+        })
+        query += rdf.sparql_suffix (order, order_direction, limit, offset)
+        return self.__run_query (query, query, "accounts")
+
+    def account_by_uuid (self, account_uuid):
+        """Returns an account record or None."""
+        try:
+            return self.accounts(account_uuid)[0]
+        except IndexError:
+            return None

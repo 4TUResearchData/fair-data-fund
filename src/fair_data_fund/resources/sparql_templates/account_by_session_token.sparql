@@ -1,0 +1,24 @@
+{% extends "prefixes.sparql" %}
+{% block query %}
+SELECT DISTINCT ?created_date ?email ?first_name ?group_id
+                ?uuid ?last_name ?modified_date ?domain
+WHERE {
+  GRAPH <{{state_graph}}> {
+    ?account             rdf:type                  fdf:Account .
+    ?account             fdf:email                 ?email .
+    OPTIONAL { ?account  fdf:created_date          ?created_date . }
+    OPTIONAL { ?account  fdf:first_name            ?first_name . }
+    OPTIONAL { ?account  fdf:last_name             ?last_name . }
+    OPTIONAL { ?account  fdf:modified_date         ?modified_date . }
+    OPTIONAL { ?account  fdf:domain                ?domain . }
+
+    ?session             rdf:type                  fdf:Session .
+    ?session             fdf:account               ?account .
+    ?session             fdf:token                 ?token .
+
+    BIND(STRAFTER(STR(?account), "account:") AS ?uuid)
+  }
+  ## Wrap in STR for compatibility with Virtuoso.
+  FILTER (STR(?token) = STR({{token | safe}}))
+}
+{% endblock %}

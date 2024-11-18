@@ -21,6 +21,8 @@ EXTRA_RESOURCES =                                                       \
     fair_data_fund/resources/html_templates/home.html                   \
     fair_data_fund/resources/html_templates/layout.html                 \
     fair_data_fund/resources/robots.txt                                 \
+    fair_data_fund/resources/sparql_templates/account_by_session_token.sparql \
+    fair_data_fund/resources/sparql_templates/accounts.sparql \
     fair_data_fund/resources/sparql_templates/applications.sparql       \
     fair_data_fund/resources/sparql_templates/institutions.sparql       \
     fair_data_fund/resources/sparql_templates/prefixes.sparql           \
