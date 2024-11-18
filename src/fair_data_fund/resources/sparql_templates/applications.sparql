@@ -1,6 +1,6 @@
 {% extends "prefixes.sparql" %}
 {% block query %}
-SELECT DISTINCT ?uuid ?name ?pronouns ?institution ?faculty ?department
+SELECT DISTINCT ?uuid ?anon_name ?name ?pronouns ?institution ?faculty ?department
                 ?position ?discipline ?datatype ?description ?size ?whodoesit
                 ?achievement ?fair_summary ?findable ?accessible ?interoperable
                 ?reusable ?summary ?data_timing ?refinement ?submit_date ?email
@@ -10,6 +10,7 @@ SELECT DISTINCT ?uuid ?name ?pronouns ?institution ?faculty ?department
 WHERE {
   GRAPH <{{state_graph}}> {
     ?application rdf:type fdf:Application .
+    OPTIONAL { ?application   fdf:anon_name       ?anon_name . }
     OPTIONAL { ?application   fdf:name            ?name . }
     OPTIONAL { ?application   fdf:pronouns        ?pronouns . }
     OPTIONAL { ?application   fdf:email           ?email . }
@@ -50,4 +51,5 @@ WHERE {
     {%- endif %}
   }
 }
+ORDER BY ASC(?submit_date)
 {% endblock %}
