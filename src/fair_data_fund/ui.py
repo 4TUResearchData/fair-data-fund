@@ -427,8 +427,8 @@ def read_configuration_file (config, server, config_file, logger, config_files):
         if update_endpoint:
             server.db.update_endpoint = update_endpoint
 
-        read_automatic_login_configuration (server, xml_root)
         read_email_configuration (server, xml_root, logger)
+        read_automatic_login_configuration (server, xml_root)
         read_saml_configuration (server, xml_root, logger)
 
         for include_element in xml_root.iter('include'):
@@ -515,6 +515,11 @@ def main_inner ():
 
         server.db.setup_sparql_endpoint ()
         setup_saml_service_provider (server, logger)
+
+        if server.identity_provider == "automatic-login":
+            server.db.insert_account (email      = server.automatic_login_email,
+                                      first_name = "Automatic",
+                                      last_name  = "User")
 
         if arguments.initialize:
             logger.info ("Initialization complete.")

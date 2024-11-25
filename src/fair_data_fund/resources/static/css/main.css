@@ -90,6 +90,8 @@ a.far, a.fab, a.fas { text-decoration: none; }
 }
 .fa-lg { .fa; font-size: 1.5em; }
 .fa-question-circle::before { content: "\f059"; }
+.fa-check-double::before { content: "\f560"; }
+.fa-pen::before { content: "\f304"; }
 .sticky { position: fixed !important; top: 0px; width: 100%; z-index: 10000; }
 .sticky-message { position: fixed !important; top: 70px; }
 .sticky-margin { margin-top: 60px; }

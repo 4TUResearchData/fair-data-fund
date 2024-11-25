@@ -3,7 +3,7 @@
 import json
 import os
 import logging
-from werkzeug.utils import redirect
+from werkzeug.utils import redirect, send_file
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.middleware.shared_data import SharedDataMiddleware
@@ -44,6 +44,9 @@ class WebUserInterfaceServer:
             R("/application-form/<uuid>",               self.ui_application_form),
             R("/application-form/<uuid>/upload-budget", self.ui_upload_budget),
             R("/application-form/<uuid>/submit",        self.ui_submit_application_form),
+            R("/review/dashboard",                      self.ui_review_dashboard),
+            R("/review/<uuid>",                         self.ui_review_application),
+            R("/review/budget/<uuid>",                  self.ui_review_application_budget),
             R("/robots.txt",                            self.robots_txt),
             R("/saml/metadata",                         self.saml_metadata),
             R("/saml/login",                            self.ui_login),
@@ -346,8 +349,104 @@ class WebUserInterfaceServer:
                          request.method,
                          request.full_path)
 
+
+    def __request_to_saml_request (self, request):
+        """Turns a werkzeug request into one that python3-saml understands."""
+
+        return {
+            ## Always assume HTTPS.  A proxy server may mask it.
+            "https":       "on",
+            ## Override the internal HTTP host because a proxy server masks the
+            ## actual HTTP host used.  Fortunately, we pre-configure the
+            ## expected HTTP host in the form of the "base_url".  So we strip
+            ## off the protocol prefix.
+            "http_host":   self.base_url.split("://")[1],
+            "script_name": request.path,
+            "get_data":    request.args.copy(),
+            "post_data":   request.form.copy()
+        }
+
+    def __saml_auth (self, request):
+        """Returns an instance of OneLogin_Saml2_Auth."""
+        http_fields = self.__request_to_saml_request (request)
+        return OneLogin_Saml2_Auth (http_fields, custom_base_path=self.saml_config_path)
+
     # ENDPOINTS
     # -------------------------------------------------------------------------
+
+    def saml_metadata (self, request):
+        """Communicates the service provider metadata for SAML 2.0."""
+
+        if not (self.accepts_content_type (request, "application/samlmetadata+xml", strict=False) or
+                self.accepts_xml (request)):
+            return self.error_406 ("text/xml")
+
+        if self.identity_provider != "saml":
+            return self.error_404 (request)
+
+        saml_auth   = self.__saml_auth (request)
+        settings    = saml_auth.get_settings ()
+        metadata    = settings.get_sp_metadata ()
+        errors      = settings.validate_metadata (metadata)
+        if len(errors) == 0:
+            return self.response (metadata, mimetype="text/xml")
+
+        self.log.error ("SAML SP Metadata validation failed.")
+        self.log.error ("Errors: %s", ", ".join(errors))
+        return self.error_500 ()
+
+    def authenticate_using_saml (self, request):
+        """Returns a record upon success, None otherwise."""
+
+        http_fields = self.__request_to_saml_request (request)
+        saml_auth   = OneLogin_Saml2_Auth (http_fields, custom_base_path=self.saml_config_path)
+        try:
+            saml_auth.process_response ()
+        except OneLogin_Saml2_Error as error:
+            if error.code == OneLogin_Saml2_Error.SAML_RESPONSE_NOT_FOUND:
+                self.log.error ("Missing SAMLResponse in POST data.")
+            else:
+                self.log.error ("SAML error %d occured.", error.code)
+            return None
+
+        errors = saml_auth.get_errors()
+        if errors:
+            self.log.error ("Errors in the SAML authentication:")
+            self.log.error ("%s", ", ".join(errors))
+            return None
+
+        if not saml_auth.is_authenticated():
+            self.log.error ("SAML authentication failed.")
+            return None
+
+        ## Gather SAML session information.
+        session = {}
+        session['samlNameId']                = saml_auth.get_nameid()
+        session['samlNameIdFormat']          = saml_auth.get_nameid_format()
+        session['samlNameIdNameQualifier']   = saml_auth.get_nameid_nq()
+        session['samlNameIdSPNameQualifier'] = saml_auth.get_nameid_spnq()
+        session['samlSessionIndex']          = saml_auth.get_session_index()
+
+        ## Gather attributes from user.
+        record               = {}
+        attributes           = saml_auth.get_attributes()
+        record["session"]    = session
+        try:
+            record["email"]      = attributes[self.saml_attribute_email][0]
+            record["first_name"] = attributes[self.saml_attribute_first_name][0]
+            record["last_name"]  = attributes[self.saml_attribute_last_name][0]
+        except (KeyError, IndexError):
+            self.log.error ("Didn't receive expected fields in SAMLResponse.")
+            self.log.error ("Received attributes: %s", attributes)
+
+        if not record["email"]:
+            self.log.error ("Didn't receive required fields in SAMLResponse.")
+            self.log.error ("Received attributes: %s", attributes)
+            return None
+
+        record["domain"] = record["email"].partition("@")[2]
+
+        return record
 
     def robots_txt (self, request):  # pylint: disable=unused-argument
         """Implements /robots.txt."""
@@ -657,100 +756,91 @@ class WebUserInterfaceServer:
             return self.error_500 ()
 
         return self.error_405 (["GET", "PUT"])
-    def saml_metadata (self, request):
-        """Communicates the service provider metadata for SAML 2.0."""
 
-        if not (self.accepts_content_type (request, "application/samlmetadata+xml", strict=False) or
-                self.accepts_xml (request)):
-            return self.error_406 ("text/xml")
+    def ui_review_dashboard (self, request):
+        """"Implements /review/dashboard."""
 
-        if self.identity_provider != "saml":
-            return self.error_404 (request)
+        account_uuid = self.account_uuid_from_request (request)
+        if account_uuid is None:
+            return self.error_authorization_failed (request)
 
-        saml_auth   = self.__saml_auth (request)
-        settings    = saml_auth.get_settings ()
-        metadata    = settings.get_sp_metadata ()
-        errors      = settings.validate_metadata (metadata)
-        if len(errors) == 0:
-            return self.response (metadata, mimetype="text/xml")
+        if request.method in ("GET", "HEAD"):
+            if not self.accepts_html (request):
+                return self.error_406 ("text/html")
 
-        self.log.error ("SAML SP Metadata validation failed.")
-        self.log.error ("Errors: %s", ", ".join(errors))
+            applications = self.db.applications (account_uuid = account_uuid,
+                                                 is_submitted = True)
+            return self.__render_template (request,
+                                           "review/dashboard.html",
+                                           applications = applications)
+
         return self.error_500 ()
 
-    def __request_to_saml_request (self, request):
-        """Turns a werkzeug request into one that python3-saml understands."""
+    def ui_review_application (self, request, uuid):
+        """Implements /review/<uuid>."""
 
-        return {
-            ## Always assume HTTPS.  A proxy server may mask it.
-            "https":       "on",
-            ## Override the internal HTTP host because a proxy server masks the
-            ## actual HTTP host used.  Fortunately, we pre-configure the
-            ## expected HTTP host in the form of the "base_url".  So we strip
-            ## off the protocol prefix.
-            "http_host":   self.base_url.split("://")[1],
-            "script_name": request.path,
-            "get_data":    request.args.copy(),
-            "post_data":   request.form.copy()
-        }
+        account_uuid = self.account_uuid_from_request (request)
+        if account_uuid is None:
+            return self.error_authorization_failed (request)
 
-    def __saml_auth (self, request):
-        """Returns an instance of OneLogin_Saml2_Auth."""
-        http_fields = self.__request_to_saml_request (request)
-        return OneLogin_Saml2_Auth (http_fields, custom_base_path=self.saml_config_path)
+        if request.method in ("GET", "HEAD"):
+            if not self.accepts_html (request):
+                return self.error_406 ("text/html")
 
-    def authenticate_using_saml (self, request):
-        """Returns a record upon success, None otherwise."""
+            try:
+                application = self.db.applications (uuid, account_uuid, True)[0]
+                self.log.info ("Application: %s", application)
+                return self.__render_template (request,
+                                               "review/evaluate.html",
+                                               application = application)
+            except IndexError:
+                return self.error_404 (request)
 
-        http_fields = self.__request_to_saml_request (request)
-        saml_auth   = OneLogin_Saml2_Auth (http_fields, custom_base_path=self.saml_config_path)
-        try:
-            saml_auth.process_response ()
-        except OneLogin_Saml2_Error as error:
-            if error.code == OneLogin_Saml2_Error.SAML_RESPONSE_NOT_FOUND:
-                self.log.error ("Missing SAMLResponse in POST data.")
-            else:
-                self.log.error ("SAML error %d occured.", error.code)
-            return None
+        if request.method == "PUT":
+            parameters = request.get_json()
+            errors = []
+            record = {
+                "reviewer_uuid":    account_uuid,
+                "application_uuid": uuid,
+                "citation_score":   validator.integer_value (parameters, "citation",  1, 5,     True,  errors),
+                "datatypes_score":  validator.integer_value (parameters, "datatypes", 1, 5,     True,  errors),
+                "budget_score":     validator.integer_value (parameters, "budget",    1, 5,     True,  errors),
+                "other_score":      validator.integer_value (parameters, "other",     1, 5,     True,  errors),
+                "comments":         validator.string_value  (parameters, "comments",  0, 16384, False, errors)
+            }
 
-        errors = saml_auth.get_errors()
-        if errors:
-            self.log.error ("Errors in the SAML authentication:")
-            self.log.error ("%s", ", ".join(errors))
-            return None
+            if errors:
+                return self.error_400_list (request, errors)
 
-        if not saml_auth.is_authenticated():
-            self.log.error ("SAML authentication failed.")
-            return None
+            if self.db.insert_evaluation (**record):
+                return self.respond_204 ()
+            return self.error_500 ()
 
-        ## Gather SAML session information.
-        session = {}
-        session['samlNameId']                = saml_auth.get_nameid()
-        session['samlNameIdFormat']          = saml_auth.get_nameid_format()
-        session['samlNameIdNameQualifier']   = saml_auth.get_nameid_nq()
-        session['samlNameIdSPNameQualifier'] = saml_auth.get_nameid_spnq()
-        session['samlSessionIndex']          = saml_auth.get_session_index()
+        return self.error_405 (["GET", "PUT"])
 
-        ## Gather attributes from user.
-        record               = {}
-        attributes           = saml_auth.get_attributes()
-        record["session"]    = session
-        try:
-            record["email"]      = attributes[self.saml_attribute_email][0]
-            record["first_name"] = attributes[self.saml_attribute_first_name][0]
-            record["last_name"]  = attributes[self.saml_attribute_last_name][0]
-        except (KeyError, IndexError):
-            self.log.error ("Didn't receive expected fields in SAMLResponse.")
-            self.log.error ("Received attributes: %s", attributes)
+    def ui_review_application_budget (self, request, uuid):
+        """Implements /review/budget/<uuid>."""
 
-        if not record["email"]:
-            self.log.error ("Didn't receive required fields in SAMLResponse.")
-            self.log.error ("Received attributes: %s", attributes)
-            return None
+        account_uuid = self.account_uuid_from_request (request)
+        if account_uuid is None:
+            return self.error_authorization_failed (request)
 
-        record["domain"] = record["email"].partition("@")[2]
+        if request.method in ("GET", "HEAD"):
+            try:
+                application = self.db.applications (uuid, account_uuid, True)[0]
+                if "budget_filename" not in application:
+                    return self.error_404 (request)
 
-        return record
+                file_path = f"{self.db.storage}/{uuid}_Budget_Template"
+                return send_file (file_path,
+                                  request.environ,
+                                  "application/octet-stream",
+                                  as_attachment=True,
+                                  download_name=application["budget_filename"])
+            except IndexError:
+                return self.error_404 (request)
+
+        return self.error_405 ("GET")
 
     def ui_login (self, request):
         """Implements /login."""

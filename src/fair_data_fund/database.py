@@ -299,9 +299,10 @@ class SparqlInterface:
         self.__log_query (query)
         return self.__run_query (query)
 
-    def applications (self, application_uuid=None, is_submitted=False):
+    def applications (self, application_uuid=None, account_uuid=None, is_submitted=False):
         """Returns a list of application records."""
         query = self.__query_from_template ("applications", {
+            "account_uuid": account_uuid,
             "uuid": application_uuid,
             "is_submitted": is_submitted
         })
@@ -313,8 +314,8 @@ class SparqlInterface:
         graph = Graph()
         uri = rdf.unique_node ("application")
 
-        graph.add ((uri, RDF.type, rdf.FDF["Application"]))
         current_epoch = int(datetime.now().timestamp())
+        rdf.add (graph, uri, RDF.type,                    rdf.FDF["Application"], "uri")
         rdf.add (graph, uri, rdf.FDF["created_date"],     current_epoch, XSD.integer)
         rdf.add (graph, uri, rdf.FDF["modified_date"],    current_epoch, XSD.integer)
 
@@ -396,11 +397,11 @@ class SparqlInterface:
         if domain is None and email is not None:
             domain = email.partition("@")[2]
 
-        rdf.add (graph, account_uri, RDF.type,               rdf.DJHT["Account"], "uri")
-        rdf.add (graph, account_uri, rdf.DJHT["first_name"], first_name, XSD.string)
-        rdf.add (graph, account_uri, rdf.DJHT["last_name"],  last_name,  XSD.string)
-        rdf.add (graph, account_uri, rdf.DJHT["email"],      email,      XSD.string)
-        rdf.add (graph, account_uri, rdf.DJHT["domain"],     domain,     XSD.string)
+        rdf.add (graph, account_uri, RDF.type,              rdf.FDF["Account"], "uri")
+        rdf.add (graph, account_uri, rdf.FDF["first_name"], first_name, XSD.string)
+        rdf.add (graph, account_uri, rdf.FDF["last_name"],  last_name,  XSD.string)
+        rdf.add (graph, account_uri, rdf.FDF["email"],      email,      XSD.string)
+        rdf.add (graph, account_uri, rdf.FDF["domain"],     domain,     XSD.string)
 
         if self.add_triples_from_graph (graph):
             self.cache.invalidate_by_prefix ("accounts")
@@ -427,12 +428,12 @@ class SparqlInterface:
         link_uri    = rdf.unique_node ("session")
         account_uri = URIRef(rdf.uuid_to_uri (account_uuid, "account"))
 
-        graph.add ((link_uri, RDF.type,               rdf.DJHT["Session"]))
-        graph.add ((link_uri, rdf.DJHT["account"],    account_uri))
-        graph.add ((link_uri, rdf.DJHT["created_date"], Literal(current_time, datatype=XSD.dateTime)))
-        graph.add ((link_uri, rdf.DJHT["name"],       Literal(name, datatype=XSD.string)))
-        graph.add ((link_uri, rdf.DJHT["token"],      Literal(token, datatype=XSD.string)))
-        graph.add ((link_uri, rdf.DJHT["editable"],   Literal(editable, datatype=XSD.boolean)))
+        rdf.add (graph, link_uri, RDF.type,                rdf.FDF["Session"], "uri")
+        rdf.add (graph, link_uri, rdf.FDF["account"],      account_uri,        "uri")
+        rdf.add (graph, link_uri, rdf.FDF["created_date"], current_time,       XSD.dateTime)
+        rdf.add (graph, link_uri, rdf.FDF["name"],         name,               XSD.string)
+        rdf.add (graph, link_uri, rdf.FDF["token"],        token,              XSD.string)
+        rdf.add (graph, link_uri, rdf.FDF["editable"],     editable,           XSD.boolean)
 
         if self.add_triples_from_graph (graph):
             return token, rdf.uri_to_uuid (link_uri)
@@ -449,7 +450,10 @@ class SparqlInterface:
             "token":       rdf.escape_string_value (session_token),
         })
 
-        return self.__run_query (query)
+        try:
+            return self.__run_query (query)[0]
+        except IndexError:
+            return None
 
     def accounts (self, account_uuid=None, order=None, order_direction=None,
                   limit=None, offset=None, email=None, search_for=None):
@@ -469,3 +473,37 @@ class SparqlInterface:
             return self.accounts(account_uuid)[0]
         except IndexError:
             return None
+
+    def account_by_email (self, email):
+        """Returns the account matching EMAIL."""
+
+        query = self.__query_from_template ("account_by_email", {
+            "email":  rdf.escape_string_value (email)
+        })
+        try:
+            return self.__run_query (query)[0]
+        except IndexError:
+            return None
+
+    def insert_evaluation (self, reviewer_uuid, application_uuid, citation_score,
+                           datatypes_score, budget_score, other_score, comments):
+        """Inserts an application evaluation for the reviewer identified by REVIEWER_UUID."""
+
+        graph           = Graph()
+        uri             = rdf.unique_node ("evaluation")
+        application_uri = rdf.uuid_to_uri (application_uuid, "application")
+        reviewer_uri    = rdf.uuid_to_uri (reviewer_uuid, "account")
+
+        rdf.add (graph, uri, RDF.type,                   rdf.FDF["Evaluation"], "uri")
+        rdf.add (graph, uri, rdf.FDF["application"],     application_uri,       "uri")
+        rdf.add (graph, uri, rdf.FDF["reviewer"],        reviewer_uri,          "uri")
+        rdf.add (graph, uri, rdf.FDF["citation_score"],  citation_score)
+        rdf.add (graph, uri, rdf.FDF["datatypes_score"], datatypes_score)
+        rdf.add (graph, uri, rdf.FDF["budget_score"],    budget_score)
+        rdf.add (graph, uri, rdf.FDF["other_score"],     other_score)
+        rdf.add (graph, uri, rdf.FDF["comments"],        comments)
+
+        if self.add_triples_from_graph (graph):
+            return rdf.uri_to_uuid (uri)
+
+        return None

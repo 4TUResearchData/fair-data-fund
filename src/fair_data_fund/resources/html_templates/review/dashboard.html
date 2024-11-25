@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block headers %}
+<link href="/static/css/form.css" rel="stylesheet">
+{% endblock %}
+{% block body %}
+<h1>Dashboard</h1>
+<table class="corporate-identity-table" id="applications">
+  <thead>
+    <th>Application</th>
+    <th>Status</th>
+  </thead>
+  <tbody>
+    {%- for record in applications %}
+    <tr>
+      <td>{% if not record.review_completed %}<a href="/review/{{record.uuid}}">{{record.anon_name}}</a>{% else %}{{record.anon_name}}{% endif %}</td>
+      <td>
+        {%- if record.review_completed %}
+        <span class="fas fa-check-double" title="Evaluated"><span style="font-size:0pt">evaluated</span></span>
+        {%- else %}
+        <a href="/review/{{record.uuid}}"><span class="fas fa-pen" title="Needs evaluation"><span style="font-size:0pt">needs evaluation</span></span></a>
+        {%- endif %}
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{% endblock %}

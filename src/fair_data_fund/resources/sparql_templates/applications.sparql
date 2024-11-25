@@ -6,7 +6,7 @@ SELECT DISTINCT ?uuid ?anon_name ?name ?pronouns ?institution ?faculty ?departme
                 ?reusable ?summary ?data_timing ?refinement ?submit_date ?email
                 ?modified_date ?linked_publication ?interview_consent ?promotion
                 ?checkpoints_consent ?financial_consent ?organization_consent
-                ?budget_filename
+                ?budget_filename ?review_completed
 WHERE {
   GRAPH <{{state_graph}}> {
     ?application rdf:type fdf:Application .
@@ -42,6 +42,16 @@ WHERE {
     OPTIONAL { ?application   fdf:submit_date     ?submit_date . }
     OPTIONAL { ?application   fdf:budget_filename ?budget_filename . }
 
+    {%- if account_uuid is not none %}
+    OPTIONAL {
+      ?review rdf:type        fdf:Evaluation .
+      ?review fdf:reviewer    <account:{{account_uuid}}> .
+      ?review fdf:application ?application .
+    }
+    BIND (xsd:boolean(BOUND(?review)) AS ?review_completed)
+    {%- else %}
+    BIND("false"^^xsd:boolean AS ?review_completed)
+    {%- endif %}
     BIND(STRAFTER(STR(?application), "application:") AS ?uuid)
     {%- if uuid is not none %}
     FILTER (?application = <application:{{uuid}}>)
