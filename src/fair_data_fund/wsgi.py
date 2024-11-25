@@ -800,13 +800,16 @@ class WebUserInterfaceServer:
             parameters = request.get_json()
             errors = []
             record = {
-                "reviewer_uuid":    account_uuid,
-                "application_uuid": uuid,
-                "citation_score":   validator.integer_value (parameters, "citation",  1, 5,     True,  errors),
-                "datatypes_score":  validator.integer_value (parameters, "datatypes", 1, 5,     True,  errors),
-                "budget_score":     validator.integer_value (parameters, "budget",    1, 5,     True,  errors),
-                "other_score":      validator.integer_value (parameters, "other",     1, 5,     True,  errors),
-                "comments":         validator.string_value  (parameters, "comments",  0, 16384, False, errors)
+                "reviewer_uuid":       account_uuid,
+                "application_uuid":    uuid,
+                "refinement_score":    validator.integer_value (parameters, "refinement",    0, 4,     True,  errors),
+                "findable_score":      validator.integer_value (parameters, "findable",      0, 4,     True,  errors),
+                "accessible_score":    validator.integer_value (parameters, "accessible",    0, 4,     True,  errors),
+                "interoperable_score": validator.integer_value (parameters, "interoperable", 0, 4,     True,  errors),
+                "reusable_score":      validator.integer_value (parameters, "reusable",      0, 4,     True,  errors),
+                "budget_score":        validator.integer_value (parameters, "budget",        0, 4,     True,  errors),
+                "achievement_score":   validator.integer_value (parameters, "achievement",   0, 4,     True,  errors),
+                "comments":            validator.string_value  (parameters, "comments",      0, 16384, False, errors)
             }
 
             if errors:

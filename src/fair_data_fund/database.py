@@ -214,10 +214,6 @@ class SparqlInterface:
         return results
 
     def __insert_query_for_graph (self, graph):
-        if self.enable_query_audit_log:
-            query = rdf.insert_query (self.state_graph, graph)
-            self.__log_query (query, "Query Audit Log")
-            return query
         return rdf.insert_query (self.state_graph, graph)
 
     def add_triples_from_graph (self, graph):
@@ -485,8 +481,9 @@ class SparqlInterface:
         except IndexError:
             return None
 
-    def insert_evaluation (self, reviewer_uuid, application_uuid, citation_score,
-                           datatypes_score, budget_score, other_score, comments):
+    def insert_evaluation (self, reviewer_uuid, application_uuid, refinement_score,
+                           findable_score, accessible_score, interoperable_score,
+                           reusable_score, budget_score, achievement_score, comments):
         """Inserts an application evaluation for the reviewer identified by REVIEWER_UUID."""
 
         graph           = Graph()
@@ -494,14 +491,17 @@ class SparqlInterface:
         application_uri = rdf.uuid_to_uri (application_uuid, "application")
         reviewer_uri    = rdf.uuid_to_uri (reviewer_uuid, "account")
 
-        rdf.add (graph, uri, RDF.type,                   rdf.FDF["Evaluation"], "uri")
-        rdf.add (graph, uri, rdf.FDF["application"],     application_uri,       "uri")
-        rdf.add (graph, uri, rdf.FDF["reviewer"],        reviewer_uri,          "uri")
-        rdf.add (graph, uri, rdf.FDF["citation_score"],  citation_score)
-        rdf.add (graph, uri, rdf.FDF["datatypes_score"], datatypes_score)
-        rdf.add (graph, uri, rdf.FDF["budget_score"],    budget_score)
-        rdf.add (graph, uri, rdf.FDF["other_score"],     other_score)
-        rdf.add (graph, uri, rdf.FDF["comments"],        comments)
+        rdf.add (graph, uri, RDF.type,                       rdf.FDF["Evaluation"], "uri")
+        rdf.add (graph, uri, rdf.FDF["application"],         application_uri,       "uri")
+        rdf.add (graph, uri, rdf.FDF["reviewer"],            reviewer_uri,          "uri")
+        rdf.add (graph, uri, rdf.FDF["refinement_score"],    refinement_score)
+        rdf.add (graph, uri, rdf.FDF["findable_score"],      findable_score)
+        rdf.add (graph, uri, rdf.FDF["accessible_score"],    accessible_score)
+        rdf.add (graph, uri, rdf.FDF["interoperable_score"], interoperable_score)
+        rdf.add (graph, uri, rdf.FDF["reusable_score"],      reusable_score)
+        rdf.add (graph, uri, rdf.FDF["budget_score"],        budget_score)
+        rdf.add (graph, uri, rdf.FDF["achievement_score"],   achievement_score)
+        rdf.add (graph, uri, rdf.FDF["comments"],            comments)
 
         if self.add_triples_from_graph (graph):
             return rdf.uri_to_uuid (uri)

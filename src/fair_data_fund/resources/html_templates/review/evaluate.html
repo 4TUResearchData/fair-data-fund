@@ -3,14 +3,14 @@
 <link href="/static/css/form.css" rel="stylesheet">
 <style>
   #application-table tr td:last-child { border-left: solid 2px #333; min-width: 150px; }
-  #application-table tr td:first-child { vertical-align: top; }
   #application-table tr th { border-bottom: solid 2px #333; }
   #application-table tr td { padding: .5em; }
   #application-table tr:nth-child(even) td:not(:last-child) {background-color: #f6f6f6;}
-  .score-select { width: 100px !important; border-radius: .5em !important; }
+  .score-select { width: 150px !important; border-radius: .5em !important; }
   .separator-row { border-bottom: solid 2px #333; }
   .separator-row td { display: none; }
   .after-separator-row td { display: none; }
+  .unscored td { color: #888; }
 </style>
 <script src="/static/js/jquery-3.7.1.min.js"></script>
 <script src="/static/js/evaluate-form.js"></script>
@@ -25,24 +25,30 @@ jQuery(document).ready(function (){
 
 <table id="application-table">
   <thead>
-    <th colspan="2" style="text-align: left">Application</th>
+    <th colspan="2" style="text-align: left">Question</th>
     <th>Score</th>
   </thead>
   <tbody>
     <!-- DATA CITATION SCORE -->
-    <tr>
+    <tr class="unscored">
       <td><strong>Are or will the data be linked to a publication?</strong></td><td>{{application.linked_publication | default("no", true)}}</td>
-      <td>
-        <select class="score-select" id="score-citation" name="score-citation">
-          <option>1</option>
-          <option>2</option>
-          <option>3</option>
-          <option>4</option>
-          <option>5</option>
-        </select>
-      </td>
+      <td></td>
+    </tr>
+    <tr class="unscored">
+      <td><strong>Data types handled in the project</strong></td><td>{{application.datatype}}</td>
+      <td></td>
+    </tr>
+    <tr class="unscored">
+      <td><strong>Content of the data and file formats description</strong></td><td>{{application.description | default("", True) | replace("\\n", "<br>") | safe }}</td>
+      <td></td>
+    </tr>
+    <tr class="unscored">
+      <td><strong>Data volume (in gigabytes) of the total dataset</strong></td><td>{{application.size}}</td>
+      <td></td>
     </tr>
     <!-- FAIR SCORE -->
+    <tr class="separator-row"><td colspan="3"></td></tr>
+    <tr class="after-separator-row"><td colspan="3"></td></tr>
     <tr>
       <td><strong>FAIR data refinement needed</strong></td>
       <td>
@@ -55,34 +61,81 @@ jQuery(document).ready(function (){
         {%- if application.refinement == "visualisation": %}Visualisation to make data FAIR{% endif %}
         {%- if application.refinement == "promotion": %}Promotion of FAIR dataset (e.g. conference presentation){% endif %}
       </td>
-      <td></td>
+      <td>
+        <select class="score-select" id="score-refinement" name="score-refinement">
+          <option value="0">No mention</option>
+          <option value="1">Poor</option>
+          <option value="2">Fair</option>
+          <option value="3">Good</option>
+        </select>
+      </td>
     </tr>
+    <tr class="separator-row"><td colspan="3"></td></tr>
+    <tr class="after-separator-row"><td colspan="3"></td></tr>
     <tr>
       <td colspan="2"><strong>Explain how refining and publishing the dataset will make it 'Findable' (Maximum 100 words)</strong></td>
-      <td></td>
+      <td>
+        <select class="score-select" id="score-findable" name="score-findable">
+          <option value="0">No mention</option>
+          <option value="1">Poor</option>
+          <option value="2">Fair</option>
+          <option value="3">Good</option>
+        </select>
+      </td>
     </tr>
     <tr>
       <td colspan="2">{{application.findable | default("", True) | replace("\\n", "<br>") | safe }}</td>
       <td></td>
     </tr>
+    <tr class="separator-row"><td colspan="3"></td></tr>
+    <tr class="after-separator-row"><td colspan="3"></td></tr>
     <tr>
       <td colspan="2"><strong>Explain how refining and publishing the dataset will make it 'Accessible' (Maximum 100 words)</strong></td>
-      <td></td>
+      <td>
+        <select class="score-select" id="score-accessible" name="score-accessible">
+          <option value="0">No mention</option>
+          <option value="1">Poor</option>
+          <option value="2">Fair</option>
+          <option value="3">Good</option>
+        </select>
+      </td>
     </tr>
     <tr>
       <td colspan="2">{{application.accessible | default("", True) | replace("\\n", "<br>") | safe }}</td>
       <td></td>
     </tr>
+    <tr class="separator-row"><td colspan="3"></td></tr>
+    <tr class="after-separator-row"><td colspan="3"></td></tr>
     <tr>
       <td colspan="2"><strong>Explain how refining and publishing the dataset will make it 'Interoperable' (Maximum 100 words)</strong></td>
-      <td></td>
+      <td>
+        <select class="score-select" id="score-interoperable" name="score-interoperable">
+          <option value="0">No mention</option>
+          <option value="1">Poor</option>
+          <option value="2">Fair</option>
+          <option value="3">Good</option>
+        </select>
+      </td>
     </tr>
     <tr>
       <td colspan="2">{{application.interoperable | default("", True) | replace("\\n", "<br>") | safe }}</td>
       <td></td>
     </tr>
+    <tr class="separator-row"><td colspan="3"></td></tr>
+    <tr class="after-separator-row"><td colspan="3"></td></tr>
     <tr>
       <td colspan="2"><strong>Explain how refining and publishing the dataset will make it 'Reusable' (Maximum 100 words)</strong></td>
+      <td>
+        <select class="score-select" id="score-reusable" name="score-reusable">
+          <option value="0">No mention</option>
+          <option value="1">Poor</option>
+          <option value="2">Fair</option>
+          <option value="3">Good</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2">{{application.reusable | default("", True) | replace("\\n", "<br>") | safe }}</td>
       <td></td>
     </tr>
     <!-- METADATA SCORE -->
@@ -90,100 +143,80 @@ jQuery(document).ready(function (){
     <!-- DATA TYPES AND FORMATS SCORE -->
     <tr class="separator-row"><td colspan="3"></td></tr>
     <tr class="after-separator-row"><td colspan="3"></td></tr>
-    <tr>
-      <td><strong>Data types handled in the project</strong></td><td>{{application.datatype}}</td>
-      <td>
-        <select class="score-select" id="score-datatypes" name="score-datatypes">
-          <option>1</option>
-          <option>2</option>
-          <option>3</option>
-          <option>4</option>
-          <option>5</option>
-        </select>
-      </td>
-    </tr>
-    <tr>
-      <td><strong>Content of the data and file formats description</strong></td><td>{{application.description | default("", True) | replace("\\n", "<br>") | safe }}</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td><strong>Data volume (in gigabytes) of the total dataset</strong></td><td>{{application.size}}</td>
-      <td></td>
-    </tr>
+    <!--
+    -->
     <!-- LICENSING SCORE -->
     <!-- BUDGET ESTIMATION SCORE -->
     <tr class="separator-row"><td colspan="3"></td></tr>
-    <tr class="after-separator-row"><td colspan="3"></td></tr>
     <tr>
-      <td><strong>Budget</strong></td><td><a href="/review/budget/{{application.uuid}}">Download budget estimate</a></td>
+      <td><strong>Budget</strong></td><td><div class="a-button"><a href="/review/budget/{{application.uuid}}">Download budget estimate</a></div></td>
       <td>
         <select class="score-select" id="score-budget" name="score-budget">
-          <option>1</option>
-          <option>2</option>
-          <option>3</option>
-          <option>4</option>
-          <option>5</option>
+          <option value="0">No mention</option>
+          <option value="1">Poor</option>
+          <option value="2">Fair</option>
+          <option value="3">Good</option>
         </select>
       </td>
     </tr>
     <!-- OTHER SCORE -->
     <tr class="separator-row"><td colspan="3"></td></tr>
     <tr class="after-separator-row"><td colspan="3"></td></tr>
-    <tr>
+    <tr class="unscored">
       <td colspan="2"><strong>Summarise how you will make your dataset FAIR beyond publishing it in the 4TU.ResearchData repository.</strong></td>
-      <td>
-        <select class="score-select" id="score-other" name="score-other">
-          <option>1</option>
-          <option>2</option>
-          <option>3</option>
-          <option>4</option>
-          <option>5</option>
-        </select>
-      </td>
+      <td></td>
     </tr>
-    <tr>
+    <tr class="unscored">
       <td colspan="2">{{application.fair_summary | default("", True) | replace("\\n", "<br>") | safe }}</td>
       <td></td>
     </tr>
-    <tr>
+    <tr class="unscored">
       <td colspan="2"><strong>Who will conduct the work and make your dataset FAIR and how long will the process take?</strong></td>
       <td></td>
     </tr>
-    <tr>
+    <tr class="unscored">
       <td colspan="2">{{application.whodoesit | default("", True) | replace("\\n", "<br>") | safe }}</td>
       <td></td>
     </tr>
+    <tr class="separator-row"><td colspan="3"></td></tr>
+    <tr class="after-separator-row"><td colspan="3"></td></tr>
     <tr>
       <td colspan="2"><strong>Summarise what you plan to achieve by refining and publishing the dataset.</strong></td>
-      <td></td>
+      <td>
+        <select class="score-select" id="score-achievement" name="score-achievement">
+          <option value="0">No mention</option>
+          <option value="1">Poor</option>
+          <option value="2">Fair</option>
+          <option value="3">Good</option>
+        </select>
+      </td>
     </tr>
     <tr>
       <td colspan="2">{{application.achievement | default("", True) | replace("\\n", "<br>") | safe }}</td>
       <td></td>
     </tr>
-    <tr>
-      <td colspan="2">{{application.reusable | default("", True) | replace("\\n", "<br>") | safe }}</td>
-      <td></td>
-    </tr>
-    <tr>
+    <tr class="separator-row"><td colspan="3"></td></tr>
+    <tr class="after-separator-row"><td colspan="3"></td></tr>
+    <tr class="unscored">
       <td colspan="2"><strong>Provide a summary of your application that can be published on the 4TU.ResearchData community website and social media channels (Maximum 50 words).</strong></td>
       <td></td>
     </tr>
-    <tr>
+    <tr class="unscored">
       <td colspan="2">{{application.summary | default("", True) | replace("\\n", "<br>") | safe }}</td>
       <td></td>
     </tr>
-    <tr>
+    <tr class="unscored">
       <td colspan="2"><strong>If applicable, please describe how you will promote your FAIR dataset.</strong></td>
       <td></td>
     </tr>
-    <tr>
+    <tr class="unscored">
       <td colspan="2">{{application.promotion | default("", True) | replace("\\n", "<br>") | safe }}</td>
       <td></td>
     </tr>
+    <tr class="separator-row"><td colspan="3"></td></tr>
     <tr>
       <td colspan="2"></td>
-      <td><div class="a-button"><a id="submit-button" href="#">Submit score</a></div></td>
+      <td style="padding: 1em 0em 1em 0em"><div style="margin-left: 1em" class="a-button"><a id="submit-button" href="#">Submit score</a></div></td>
     </tr>
   </tbody>
 </table>

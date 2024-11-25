@@ -1,9 +1,12 @@
 function gather_form_data () {
     return {
-        "citation": jQuery("#score-citation").val(),
-        "datatypes": jQuery("#score-datatypes").val(),
+        "refinement": jQuery("#score-refinement").val(),
+        "findable": jQuery("#score-findable").val(),
+        "accessible": jQuery("#score-accessible").val(),
+        "interoperable": jQuery("#score-interoperable").val(),
+        "reusable": jQuery("#score-reusable").val(),
         "budget": jQuery("#score-budget").val(),
-        "other": jQuery("#score-other").val(),
+        "achievement": jQuery("#score-achievement").val()
     };
 }
 
