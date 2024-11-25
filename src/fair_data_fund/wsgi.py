@@ -789,7 +789,6 @@ class WebUserInterfaceServer:
 
             try:
                 application = self.db.applications (uuid, account_uuid, True)[0]
-                self.log.info ("Application: %s", application)
                 return self.__render_template (request,
                                                "review/evaluate.html",
                                                application = application)
