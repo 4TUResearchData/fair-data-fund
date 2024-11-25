@@ -891,7 +891,6 @@ class WebUserInterfaceServer:
                             email       = saml_record["email"],
                             first_name  = value_or_none (saml_record, "first_name"),
                             last_name   = value_or_none (saml_record, "last_name"),
-                            common_name = value_or_none (saml_record, "common_name"),
                             domain      = value_or_none (saml_record, "domain")
                         )
                         if account_uuid is None:
@@ -916,6 +915,7 @@ class WebUserInterfaceServer:
             response.set_cookie (key=self.cookie_key, value=token, secure=self.in_production)
             return response
 
+        self.log.error ("Failed to create account during login.")
         return self.error_500 ()
 
     def ui_logout (self, request):
