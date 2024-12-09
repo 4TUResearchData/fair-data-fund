@@ -47,6 +47,7 @@ class WebUserInterfaceServer:
             R("/review/dashboard",                      self.ui_review_dashboard),
             R("/review/<uuid>",                         self.ui_review_application),
             R("/review/budget/<uuid>",                  self.ui_review_application_budget),
+            R("/ranking",                               self.ui_ranking),
             R("/robots.txt",                            self.robots_txt),
             R("/saml/metadata",                         self.saml_metadata),
             R("/saml/login",                            self.ui_login),
@@ -59,7 +60,7 @@ class WebUserInterfaceServer:
         self.email            = email_handler.EmailInterface()
         self.repositories     = {}
         self.identity_provider = None
-
+        self.ranking_reviewers = []
         self.saml_config_path    = None
         self.saml_config         = None
         self.saml_attribute_email = "urn:mace:dir:attribute-def:mail"
@@ -843,6 +844,39 @@ class WebUserInterfaceServer:
                 return self.error_404 (request)
 
         return self.error_405 ("GET")
+
+    def ui_ranking (self, request):
+        """Implements /ranking."""
+
+        account_uuid = self.account_uuid_from_request (request)
+        if account_uuid is None:
+            return self.error_authorization_failed (request)
+
+        if account_uuid not in self.ranking_reviewers:
+            return self.error_403 (request)
+
+        if request.method in ("GET", "HEAD"):
+            if not self.accepts_html (request):
+                return self.error_406 ("text/html")
+
+            try:
+                ranking = self.db.ranking ()
+                if not ranking:
+                    return self.__render_template (request, "ranking.html", ranking=[])
+
+                for record in ranking:
+                    record["total_score"] = (value_or (record, "budget_score",        0) +
+                                             value_or (record, "achievement_score",   0) +
+                                             value_or (record, "refinement_score",    0) +
+                                             value_or (record, "findable_score",      0) +
+                                             value_or (record, "accessible_score",    0) +
+                                             value_or (record, "interoperable_score", 0) +
+                                             value_or (record, "reusable_score",      0))
+
+                ranking = sorted (ranking, key = lambda x: x["total_score"], reverse=True)
+                return self.__render_template (request, "ranking.html", ranking = ranking)
+            except IndexError:
+                return self.error_404 (request)
 
     def ui_login (self, request):
         """Implements /login."""

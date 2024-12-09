@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+{% block headers %}
+<link href="/static/css/form.css" rel="stylesheet">
+<style>
+table#ranking { width: 100%; max-width: 880pt; }
+table#ranking thead tr { background: #ddd; }
+table#ranking thead tr th { color: #000; z-index: 50;border-top: none; }
+th.stretch { background: #fff; vertical-align: bottom; text-align: right }
+td.stretch, th.stretch { border: solid 2pt #fff; }
+th.rotated { padding: .25em; vertical-align: bottom; text-align: center; border: solid 2pt #fff; }
+th.stretch { vertical-align: bottom; text-align: right; }
+th.rotated span { text-align: center; }
+td.rotated { text-align: center; border: solid 2pt #fff; }
+table#ranking thead tr th.total { background: #fff; text-align: right; vertical-align: bottom; }
+table#ranking thead tr th.stretch { background: #fff; text-align: left; vertical-align: bottom; }
+table#ranking tbody tr td.total { text-align: right; font-weight: bold; }
+</style>
+{% endblock %}
+{% block body %}
+<h1>Ranking</h1>
+<table id="ranking">
+  <thead>
+    <th class="stretch">Application</th>
+    <th class="rotated"><span>Budget</span></th>
+    <th class="rotated"><span>Achievement</span></th>
+    <th class="rotated"><span>Refinement</span></th>
+    <th class="rotated"><span>Findable</span></th>
+    <th class="rotated"><span>Accessible</span></th>
+    <th class="rotated"><span>Interoperable</span></th>
+    <th class="rotated"><span>Reusable</span></th>
+    <th class="total">Total</th>
+  </thead>
+  <tbody>
+    {%- for record in ranking %}
+    <tr>
+      <td class="stretch">{{record.anon_name}}</td>
+      <td class="rotated">{{record.budget_score}}</td>
+      <td class="rotated">{{record.achievement_score}}</td>
+      <td class="rotated">{{record.refinement_score}}</td>
+      <td class="rotated">{{record.findable_score}}</td>
+      <td class="rotated">{{record.accessible_score}}</td>
+      <td class="rotated">{{record.interoperable_score}}</td>
+      <td class="rotated">{{record.reusable_score}}</td>
+      <td class="total">{{record.total_score}} <span style="font-weight: normal; color: #999;">({{record.number_of_reviewers}} evaluations)<span></td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{% endblock %}

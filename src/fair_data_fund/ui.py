@@ -427,6 +427,16 @@ def read_configuration_file (config, server, config_file, logger, config_files):
         if update_endpoint:
             server.db.update_endpoint = update_endpoint
 
+        ranking_reviewers = xml_root.find ("ranking-reviewers")
+        if ranking_reviewers is not None:
+            for account in ranking_reviewers:
+                if account.tag != "account":
+                    logger.error ("Unexpected '%s' in 'ranking-reviewers'.", account.tag)
+                    raise SystemExit
+                if account.text is None or account.text.strip() == "":
+                    continue
+                server.ranking_reviewers.append (account.text.strip())
+
         read_email_configuration (server, xml_root, logger)
         read_automatic_login_configuration (server, xml_root)
         read_saml_configuration (server, xml_root, logger)

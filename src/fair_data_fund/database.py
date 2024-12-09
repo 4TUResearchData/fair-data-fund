@@ -304,6 +304,11 @@ class SparqlInterface:
         })
         return self.__run_query (query)
 
+    def ranking (self):
+        """Returns a table with rankings per application."""
+        query = self.__query_from_template ("ranking")
+        return self.__run_query (query)
+
     def create_application (self):
         """Creates an application entry and returns a unique UUID."""
 

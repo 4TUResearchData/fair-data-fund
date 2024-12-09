@@ -1,0 +1,39 @@
+{% extends "prefixes.sparql" %}
+{% block query %}
+PREFIX fdf:  <https://ontologies.data.4tu.nl/fair-data-fund/0.0.1/>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+
+SELECT DISTINCT ?anon_name
+                (SUM(?budget_score)        AS ?budget_score)
+                (SUM(?accessible_score)    AS ?accessible_score)
+                (SUM(?achievement_score)   AS ?achievement_score)
+                (SUM(?refinement_score)    AS ?refinement_score)
+                (SUM(?reusable_score)      AS ?reusable_score)
+                (SUM(?interoperable_score) AS ?interoperable_score)
+                (SUM(?findable_score)      AS ?findable_score)
+                (COUNT(DISTINCT ?reviewer) AS ?number_of_reviewers)
+WHERE {
+  GRAPH <{{state_graph}}> {
+    ?evaluation  rdf:type                fdf:Evaluation .
+    ?reviewer    rdf:type                fdf:Account .
+    ?application rdf:type                fdf:Application .
+
+    ?evaluation  fdf:reviewer            ?reviewer .
+    ?evaluation  fdf:budget_score        ?budget_score .
+    ?evaluation  fdf:accessible_score    ?accessible_score .
+    ?evaluation  fdf:achievement_score   ?achievement_score .
+    ?evaluation  fdf:refinement_score    ?refinement_score .
+    ?evaluation  fdf:reusable_score      ?reusable_score .
+    ?evaluation  fdf:interoperable_score ?interoperable_score .
+    ?evaluation  fdf:findable_score      ?findable_score .
+    ?evaluation  fdf:application         ?application .
+
+    ?application fdf:anon_name           ?anon_name .
+
+    BIND (STRAFTER(STR(?reviewer), "account:") AS ?reviewer_uuid)
+  }
+}
+ORDER BY ASC(?application_name)
+{% endblock %}
