@@ -5,7 +5,7 @@ PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
 
-SELECT DISTINCT ?anon_name
+SELECT DISTINCT ?anon_name ?application_uuid
                 (SUM(?budget_score)        AS ?budget_score)
                 (SUM(?accessible_score)    AS ?accessible_score)
                 (SUM(?achievement_score)   AS ?achievement_score)
@@ -32,7 +32,7 @@ WHERE {
 
     ?application fdf:anon_name           ?anon_name .
 
-    BIND (STRAFTER(STR(?reviewer), "account:") AS ?reviewer_uuid)
+    BIND (STRAFTER(STR(?application), "application:") AS ?application_uuid)
   }
 }
 ORDER BY ASC(?application_name)

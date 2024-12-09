@@ -33,7 +33,7 @@ table#ranking tbody tr td.total { text-align: right; font-weight: bold; }
   <tbody>
     {%- for record in ranking %}
     <tr>
-      <td class="stretch">{{record.anon_name}}</td>
+      <td class="stretch"><a href="/application/{{record.application_uuid}}">{{record.anon_name}}</a></td>
       <td class="rotated">{{record.budget_score}}</td>
       <td class="rotated">{{record.achievement_score}}</td>
       <td class="rotated">{{record.refinement_score}}</td>

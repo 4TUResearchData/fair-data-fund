@@ -40,6 +40,7 @@ class WebUserInterfaceServer:
             R("/",                                      self.ui_home),
             R("/login",                                 self.ui_login),
             R("/logout",                                self.ui_logout),
+            R("/application/<uuid>",                    self.ui_application_overview),
             R("/application-form",                      self.ui_application_form),
             R("/application-form/<uuid>",               self.ui_application_form),
             R("/application-form/<uuid>/upload-budget", self.ui_upload_budget),
@@ -709,6 +710,38 @@ class WebUserInterfaceServer:
             return self.error_500 ()
 
         return self.error_405 (["GET", "PUT"])
+
+    def ui_application_overview (self, request, uuid):
+        """Implements /application/<uuid>."""
+
+        account_uuid = self.account_uuid_from_request (request)
+        if account_uuid is None:
+            return self.error_authorization_failed (request)
+
+        if account_uuid not in self.ranking_reviewers:
+            return self.error_403 (request)
+
+        if uuid is None or not validator.is_valid_uuid (uuid):
+            return self.error_404 (request)
+
+        if not self.accepts_html (request):
+            return self.error_406 ("text/html")
+
+
+        try:
+            application  = self.db.applications (application_uuid = uuid,
+                                                 is_submitted     = True)[0]
+            institutions = self.db.institutions ()
+            parameters = {
+                "application": application,
+                "institutions": institutions
+            }
+
+            return self.__render_template (request,
+                                           "application-overview.html",
+                                           **parameters)
+        except (TypeError, IndexError):
+            return self.error_404 (request)
 
     def ui_submit_application_form (self, request, uuid=None):
         """Implements /application-form/<uuid>/submit."""
